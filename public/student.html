@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <title>Jugar — IA Para Todos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body { background: var(--gris-claro); }
+    .game-screen { display:none; min-height:calc(100vh - 64px); flex-direction:column; }
+    .game-screen.active { display:flex; }
+    .screen-inner { flex:1; padding:1rem; display:flex; flex-direction:column; max-width:680px; margin:0 auto; width:100%; }
+
+    /* Join */
+    #screen-join { align-items:center; justify-content:center; }
+    .join-card { background:white; border-radius:var(--radius-xl); padding:2.5rem 2rem; width:100%; max-width:400px; box-shadow:var(--shadow-lg); border:1px solid rgba(23,33,28,0.10); }
+    .join-mascot { width:118px; display:block; margin:0 auto 1rem; border-radius:16px; box-shadow:var(--shadow-sm); }
+    .join-title { font-family:var(--font-main); font-size:1.8rem; font-weight:900; text-align:center; margin-bottom:0.25rem; }
+    .join-sub { text-align:center; color:var(--gris-oscuro); margin-bottom:2rem; font-size:0.9rem; }
+    .avatar-grid { display:grid; grid-template-columns:repeat(6,1fr); gap:0.5rem; margin:0.5rem 0 1rem; }
+    .avatar-opt { font-size:1.55rem; text-align:center; cursor:pointer; border:1px solid transparent; border-radius:var(--radius-sm); padding:4px; transition:all 0.15s; filter:grayscale(0.65); }
+    .avatar-opt:hover { border-color:var(--azul-claro); background:var(--azul-pale); }
+    .avatar-opt.selected { border-color:var(--azul); background:var(--azul-pale); filter:grayscale(0.25); }
+
+    /* Lobby */
+    #screen-lobby { align-items:center; justify-content:center; }
+    .lobby-card { background:white; border-radius:var(--radius-xl); padding:2rem; width:100%; max-width:480px; box-shadow:var(--shadow-lg); text-align:center; }
+    .waiting-animation { font-size:3rem; animation:bounce 1.4s ease-in-out infinite; display:block; margin:1rem 0; }
+    @keyframes bounce { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-12px)} }
+
+    /* Playing */
+    .module-banner {
+      background:#17211C;
+      color:white;
+      text-align:center;
+      padding:0.5rem 1rem;
+      font-weight:800;
+      font-size:0.9rem;
+      letter-spacing:0.05em;
+    }
+    .round-info {
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:0.75rem 0;
+      font-size:0.85rem;
+      color:var(--gris-oscuro);
+      font-weight:700;
+    }
+
+    /* Open-ended answer */
+    .open-answer-box {
+      width:100%;
+      min-height:100px;
+      border:2px solid var(--gris-medio);
+      border-radius:var(--radius-md);
+      padding:1rem;
+      font-family:var(--font-body);
+      font-size:1rem;
+      resize:vertical;
+      transition:border-color 0.15s;
+      outline:none;
+    }
+    .open-answer-box:focus { border-color:var(--azul); box-shadow:0 0 0 3px rgba(15,111,58,0.12); }
+
+    /* Result feedback */
+    .feedback-card {
+      background:white;
+      border-radius:var(--radius-lg);
+      padding:1.5rem;
+      text-align:center;
+      margin-bottom:1rem;
+      box-shadow:var(--shadow-sm);
+    }
+    .points-pop {
+      font-family:var(--font-main);
+      font-size:3rem;
+      font-weight:900;
+      color:var(--azul);
+      animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+    @keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+
+    /* AI response box for debate/completeprompt */
+    .ai-response-box {
+      background:#F8FAF8;
+      border:1px solid rgba(15,111,58,0.16);
+      border-radius:var(--radius-md);
+      padding:1.25rem;
+      margin:1rem 0;
+    }
+    .ai-label { font-size:0.78rem; font-weight:800; color:var(--azul); text-transform:uppercase; letter-spacing:0.08em; margin-bottom:0.5rem; }
+
+    /* End game */
+    #screen-end { align-items:center; justify-content:center; }
+    .end-card { background:white; border-radius:var(--radius-xl); padding:2rem; width:100%; max-width:480px; box-shadow:var(--shadow-lg); }
+
+    .score-my {
+      font-family:var(--font-main);
+      font-size:2.5rem;
+      font-weight:900;
+      color:var(--azul);
+      text-align:center;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="/" aria-label="Ir al inicio"><img src="/assets/cujae.png" alt="CUJAE" class="header-logo"></a>
+    <div>
+      <div class="header-title">IA Para Todos</div>
+      <div class="header-subtitle">Universidad Tecnológica de La Habana</div>
+    </div>
+    <div class="header-spacer"></div>
+    <a href="/" class="btn btn-ghost btn-sm">← Inicio</a>
+    <div id="header-room-code" style="display:none" class="header-badge"></div>
+  </header>
+
+  <!-- PANTALLA 1: UNIRSE -->
+  <div id="screen-join" class="game-screen active">
+    <div class="screen-inner" style="align-items:center;justify-content:center;">
+      <div class="join-card">
+        <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="join-mascot">
+        <div class="join-title">🎮 Únete al juego</div>
+        <div class="join-sub">Ingresa el código que te dio tu profesor</div>
+        <div class="form-group">
+          <label class="form-label">Código de sala</label>
+          <input id="join-code" type="text" class="input input-code" maxlength="5" placeholder="XXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Tu nombre</label>
+          <input id="join-name" type="text" class="input input-lg" placeholder="Ej: María García" maxlength="20">
+        </div>
+        <div class="form-group">
+          <label class="form-label">Elige tu avatar</label>
+          <div class="avatar-grid" id="avatar-grid">
+            <!-- generado por JS -->
+          </div>
+        </div>
+        <button class="btn btn-primary btn-lg btn-block" id="join-btn" onclick="joinRoom()">Entrar 🚀</button>
+        <p id="join-error" style="color:var(--color-danger);text-align:center;margin-top:0.75rem;font-weight:700;display:none;"></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 2: LOBBY -->
+  <div id="screen-lobby" class="game-screen">
+    <div class="screen-inner" style="align-items:center;justify-content:center;">
+      <div class="lobby-card">
+        <h2 id="lobby-welcome">¡Bienvenido!</h2>
+        <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="join-mascot">
+        <span class="waiting-animation" id="lobby-avatar">🎮</span>
+        <p class="text-muted">Esperando a que el docente inicie el juego...</p>
+        <div class="mt-2" id="lobby-players-count" style="font-weight:700;color:var(--azul);"></div>
+        <div class="player-grid mt-2" id="lobby-players-grid"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 3: MÓDULO ANUNCIADO -->
+  <div id="screen-module-intro" class="game-screen">
+    <div class="screen-inner" style="align-items:center;justify-content:center;">
+      <div class="card card-lg" style="text-align:center;max-width:480px;width:100%;">
+        <div id="module-intro-icon" style="font-size:5rem;margin-bottom:1rem;">🧠</div>
+        <h2 id="module-intro-name">Trivia IA</h2>
+        <p id="module-intro-desc" class="text-muted mt-1">Descripción del módulo</p>
+        <div class="badge badge-blue mt-2" id="module-intro-badge">Preparando...</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- PANTALLA 4: JUGANDO -->
+  <div id="screen-playing" class="game-screen" style="flex-direction:column;">
+    <div class="module-banner" id="module-banner-name">Módulo</div>
+    <div class="screen-inner">
+      <div class="round-info">
+        <div class="rounds-progress" id="rounds-progress-student"></div>
+        <div id="round-label" style="font-weight:800;color:var(--azul);">Ronda 1</div>
+      </div>
+
+      <div class="timer-bar-wrap">
+        <div class="timer-bar" id="timer-bar" style="width:100%"></div>
+      </div>
+      <div class="timer-number" id="timer-number">20</div>
+
+      <!-- Pregunta -->
+      <div class="question-box" id="question-box" style="margin-top:0.5rem;">
+        <div class="question-type-badge" id="q-type-badge">Cargando...</div>
+        <div id="q-topic" style="font-size:0.85rem;color:var(--gris-oscuro);margin-bottom:0.5rem;display:none;"></div>
+        <div class="question-text" id="q-text">Cargando pregunta...</div>
+        <div id="q-scenario" style="font-size:0.9rem;color:var(--gris-oscuro);margin-top:0.75rem;line-height:1.6;display:none;"></div>
+      </div>
+
+      <!-- Turing: dos textos -->
+      <div id="turing-block" style="display:none;">
+        <div class="turing-texts">
+          <div class="turing-text-card" id="turing-A" onclick="answerTuring('A')">
+            <span class="turing-label">Texto A</span>
+            <div id="turing-text-A">–</div>
+          </div>
+          <div class="turing-text-card" id="turing-B" onclick="answerTuring('B')">
+            <span class="turing-label">Texto B</span>
+            <div id="turing-text-B">–</div>
+          </div>
+        </div>
+        <p class="text-center text-muted" style="font-size:0.85rem;">¿Cuál fue escrito por la IA?</p>
+      </div>
+
+      <!-- Opciones múltiple -->
+      <div class="options-grid" id="options-grid" style="display:none;"></div>
+
+      <!-- Respuesta abierta (debate / completeprompt) -->
+      <div id="open-block" style="display:none;">
+        <p style="font-size:0.85rem;color:var(--gris-oscuro);margin-bottom:0.5rem;" id="open-hint"></p>
+        <textarea class="open-answer-box" id="open-answer" placeholder="Escribe tu respuesta aquí..."></textarea>
+        <button class="btn btn-primary btn-block mt-2" onclick="submitOpen()" id="open-submit-btn">Enviar respuesta ✓</button>
+      </div>
+
+      <!-- Respuesta ya enviada -->
+      <div id="waiting-others" style="display:none;text-align:center;padding:2rem 0;">
+        <div style="font-size:3rem;animation:bounce 1.4s infinite;">⏳</div>
+        <p class="text-muted mt-2">Tu respuesta fue enviada.<br>Esperando a los demás...</p>
+      </div>
+
+    </div><!-- /screen-inner -->
+  </div>
+
+  <!-- PANTALLA 5: RESULTADO DE RONDA -->
+  <div id="screen-round-result" class="game-screen">
+    <div class="screen-inner">
+      <div class="feedback-card mt-2" id="feedback-card">
+        <span class="result-icon" id="result-icon">✅</span>
+        <div class="result-title" id="result-title">¡Correcto!</div>
+        <div class="points-pop" id="result-points">+150 pts</div>
+      </div>
+      <div class="explanation-box" id="round-explanation" style="display:none;"></div>
+      <div class="ai-response-box" id="ai-response-reveal" style="display:none;">
+        <div class="ai-label">🤖 Respuesta de la IA</div>
+        <div id="ai-response-text"></div>
+      </div>
+      <div class="card mt-2">
+        <div class="section-title">Marcador actual</div>
+        <ul class="scoreboard" id="result-scoreboard"></ul>
+      </div>
+      <p class="text-center text-muted mt-2" style="font-size:0.85rem;">Esperando la siguiente ronda...</p>
+    </div>
+  </div>
+
+  <!-- PANTALLA 6: FIN -->
+  <div id="screen-end" class="game-screen">
+    <div class="screen-inner" style="align-items:center;justify-content:center;">
+      <div class="end-card">
+        <h2 class="text-center mb-2">🎉 ¡Juego terminado!</h2>
+        <div class="podium" id="end-podium"></div>
+        <div id="my-final-rank" style="text-align:center;padding:1rem 0;"></div>
+        <ul class="scoreboard" id="end-scoreboard"></ul>
+        <button class="btn btn-primary btn-block mt-3" onclick="location.href='/jugar'">Jugar de nuevo 🔄</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast-container" id="toasts"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    // ─── Estado ───────────────────────────────────────────────────────────────
+    const socket = io({ reconnectionDelay: 1000 });
+    let playerName = '';
+    let playerAvatar = '🎮';
+    let roomCode = '';
+    let myScore = 0;
+    let currentQuestion = null;
+    let timerInterval = null;
+    let timeLeft = 0;
+    let hasAnswered = false;
+    let currentRound = 0;
+    let maxRounds = 5;
+    let currentModuleName = '';
+
+    const avatars = ['🎓','😊','🤓','😎','🦁','🐯','🦊','🐼','🐸','🦅','🌟','⚡','🎯','🚀','💡','🔬','🎮','🏆','🎨','🌺'];
+
+    // ─── Pantallas ─────────────────────────────────────────────────────────────
+    function showScreen(id) {
+      document.querySelectorAll('.game-screen').forEach(s => s.classList.remove('active'));
+      document.getElementById(id).classList.add('active');
+    }
+
+    function toast(msg, type='') {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      document.getElementById('toasts').appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+    function showJoinError(msg) {
+      const errEl = document.getElementById('join-error');
+      if (errEl) {
+        errEl.style.display = 'block';
+        errEl.textContent = msg || 'No se pudo entrar a la sala.';
+      }
+      toast(msg || 'No se pudo entrar a la sala.', 'error');
+    }
+
+    // ─── Init avatares ─────────────────────────────────────────────────────────
+    function initAvatars() {
+      const grid = document.getElementById('avatar-grid');
+      avatars.forEach(a => {
+        const d = document.createElement('div');
+        d.className = 'avatar-opt';
+        d.textContent = a;
+        d.onclick = () => {
+          document.querySelectorAll('.avatar-opt').forEach(x => x.classList.remove('selected'));
+          d.classList.add('selected');
+          playerAvatar = a;
+        };
+        grid.appendChild(d);
+      });
+      grid.firstChild.classList.add('selected');
+      playerAvatar = avatars[0];
+    }
+    initAvatars();
+
+    // Auto uppercase code
+    document.getElementById('join-code').addEventListener('input', function() {
+      this.value = this.value.toUpperCase().replace(/[^A-Z0-9]/g,'');
+    });
+
+    // ─── Unirse ────────────────────────────────────────────────────────────────
+    function joinRoom() {
+      const code = document.getElementById('join-code').value.trim().toUpperCase();
+      const name = document.getElementById('join-name').value.trim();
+      const errEl = document.getElementById('join-error');
+      if (!socket.connected) { showJoinError('No hay conexión con el servidor. Revisa la red e intenta de nuevo.'); return; }
+      if (!code || code.length < 4) { showJoinError('Ingresa el código de sala de al menos 4 caracteres.'); return; }
+      if (!name) { showJoinError('Escribe tu nombre antes de entrar.'); return; }
+      errEl.style.display='none';
+      playerName = name; roomCode = code;
+      const btn = document.getElementById('join-btn');
+      btn.disabled = true;
+      btn.textContent = 'Entrando...';
+      socket.emit('player:join', { code, name, avatar: playerAvatar });
+      setTimeout(() => {
+        if (document.getElementById('screen-join').classList.contains('active')) {
+          btn.disabled = false;
+          btn.textContent = 'Entrar 🚀';
+        }
+      }, 5000);
+    }
+
+    socket.on('player:joined', ({ code }) => {
+      const btn = document.getElementById('join-btn');
+      btn.disabled = false;
+      btn.textContent = 'Entrar 🚀';
+      document.getElementById('header-room-code').style.display = 'block';
+      document.getElementById('header-room-code').textContent = code;
+      document.getElementById('lobby-welcome').textContent = `¡Hola, ${playerName}!`;
+      document.getElementById('lobby-avatar').textContent = playerAvatar;
+      showScreen('screen-lobby');
+    });
+
+    socket.on('room:state', ({ players }) => {
+      const students = players.filter(p => !p.isTeacher);
+      const el = document.getElementById('lobby-players-count');
+      if (el) el.textContent = `${students.length} jugador${students.length!==1?'es':''} conectado${students.length!==1?'s':''}`;
+      const grid = document.getElementById('lobby-players-grid');
+      if (grid) grid.innerHTML = students.map(p =>
+        `<div class="player-card${p.name===playerName?' joined':''}">
+          <span class="player-avatar">${p.avatar}</span>
+          <div class="player-name">${p.name}</div>
+        </div>`).join('');
+    });
+
+    // ─── Inicio de módulo ──────────────────────────────────────────────────────
+    const moduleIcons = { trivia:'🧠', turing:'🤖', ethics:'⚖️', fakenews:'🕵️', completeprompt:'✍️', debate:'🗣️' };
+
+    socket.on('game:moduleStart', ({ moduleName, displayName, description }) => {
+      currentModuleName = moduleName;
+      document.getElementById('module-intro-icon').textContent = moduleIcons[moduleName]||'🎮';
+      document.getElementById('module-intro-name').textContent = displayName;
+      document.getElementById('module-intro-desc').textContent = description;
+      document.getElementById('module-intro-badge').textContent = '¡Listo para jugar!';
+      document.getElementById('module-banner-name').textContent = displayName;
+      showScreen('screen-module-intro');
+    });
+
+    socket.on('game:roundStart', ({ round, maxRounds: mr }) => {
+      currentRound = round; maxRounds = mr; hasAnswered = false;
+      updateRoundsProgress(round, mr);
+      document.getElementById('round-label').textContent = `Ronda ${round} / ${mr}`;
+    });
+
+    // ─── Pregunta ──────────────────────────────────────────────────────────────
+    socket.on('game:question', ({ question, timeLimit }) => {
+      currentQuestion = question;
+      hasAnswered = false;
+      showScreen('screen-playing');
+      renderQuestion(question);
+      startTimer(timeLimit || 20);
+    });
+
+    function renderQuestion(q) {
+      // Reset
+      document.getElementById('turing-block').style.display = 'none';
+      document.getElementById('options-grid').style.display = 'none';
+      document.getElementById('open-block').style.display = 'none';
+      document.getElementById('waiting-others').style.display = 'none';
+      document.getElementById('q-topic').style.display = 'none';
+      document.getElementById('q-scenario').style.display = 'none';
+
+      const badges = { trivia:'🧠 Trivia', turing:'🤖 Turing', ethics:'⚖️ Ética', fakenews:'🕵️ ¿Real o IA?', completeprompt:'✍️ Prompt', debate:'🗣️ Debate' };
+      document.getElementById('q-type-badge').textContent = badges[q.type]||'Pregunta';
+
+      if (q.type === 'turing') {
+        document.getElementById('q-text').textContent = `Tema: "${q.topic}"`;
+        document.getElementById('turing-text-A').textContent = q.textA;
+        document.getElementById('turing-text-B').textContent = q.textB;
+        document.getElementById('turing-block').style.display = 'block';
+        resetTuringCards();
+      } else if (q.type === 'completeprompt' || q.type === 'debate') {
+        if (q.type === 'debate') {
+          document.getElementById('q-text').textContent = q.topic;
+          const sc = document.getElementById('q-scenario');
+          sc.textContent = `Tu posición: "${q.yourPosition}". La IA defenderá: "${q.aiPosition}"`;
+          sc.style.display = 'block';
+          document.getElementById('open-hint').textContent = q.hint || 'Escribe tus argumentos de forma clara y breve';
+        } else {
+          document.getElementById('q-text').textContent = q.prompt;
+          document.getElementById('open-hint').textContent = q.hint || '¿Cómo crees que responderá la IA?';
+        }
+        document.getElementById('open-answer').value = '';
+        document.getElementById('open-submit-btn').disabled = false;
+        document.getElementById('open-block').style.display = 'block';
+      } else {
+        // Multiple choice (trivia, ethics, fakenews)
+        const title = q.title || q.text || '';
+        document.getElementById('q-text').textContent = title;
+        if (q.type === 'ethics' && q.text !== q.title) {
+          const sc = document.getElementById('q-scenario');
+          sc.textContent = q.text;
+          sc.style.display = 'block';
+        }
+        renderOptions(q.options);
+      }
+    }
+
+    function renderOptions(options) {
+      const letters = ['A','B','C','D','E'];
+      const grid = document.getElementById('options-grid');
+      grid.innerHTML = options.map((opt, i) => `
+        <button class="option-btn" data-idx="${i}" onclick="answerOption(${i})">
+          <span class="option-letter">${letters[i]}</span>
+          <span>${opt}</span>
+        </button>`).join('');
+      grid.style.display = 'grid';
+    }
+
+    // ─── Respuestas ────────────────────────────────────────────────────────────
+    function answerOption(idx) {
+      if (hasAnswered) return;
+      hasAnswered = true;
+      stopTimer();
+      document.querySelectorAll('.option-btn').forEach(b => { b.disabled = true; b.classList.remove('selected'); });
+      document.querySelectorAll('.option-btn')[idx].classList.add('selected');
+      document.getElementById('waiting-others').style.display = 'block';
+      socket.emit('player:answer', { code: roomCode, answer: String(idx), timeLeft });
+    }
+
+    function answerTuring(choice) {
+      if (hasAnswered) return;
+      hasAnswered = true;
+      stopTimer();
+      document.getElementById('turing-A').onclick = null;
+      document.getElementById('turing-B').onclick = null;
+      document.getElementById('turing-' + choice).classList.add('selected');
+      socket.emit('player:answer', { code: roomCode, answer: choice, timeLeft });
+      document.getElementById('waiting-others').style.display = 'block';
+      document.getElementById('turing-block').style.display = 'block';
+    }
+
+    function submitOpen() {
+      if (hasAnswered) return;
+      const text = document.getElementById('open-answer').value.trim();
+      hasAnswered = true;
+      stopTimer();
+      document.getElementById('open-submit-btn').disabled = true;
+      socket.emit('player:answer', { code: roomCode, answer: text, timeLeft });
+      document.getElementById('open-block').style.display = 'none';
+      document.getElementById('waiting-others').style.display = 'block';
+    }
+
+    function resetTuringCards() {
+      ['A','B'].forEach(l => {
+        const c = document.getElementById('turing-'+l);
+        c.classList.remove('selected','correct','wrong');
+        c.onclick = () => answerTuring(l);
+      });
+    }
+
+    // ─── Timer ─────────────────────────────────────────────────────────────────
+    function startTimer(seconds) {
+      timeLeft = seconds;
+      clearInterval(timerInterval);
+      updateTimerUI(seconds, seconds);
+      timerInterval = setInterval(() => {
+        timeLeft--;
+        updateTimerUI(timeLeft, seconds);
+        if (timeLeft <= 0) {
+          stopTimer();
+          if (!hasAnswered) {
+            hasAnswered = true;
+            socket.emit('player:answer', { code: roomCode, answer: '-1', timeLeft: 0 });
+            document.getElementById('waiting-others').style.display = 'block';
+          }
+        }
+      }, 1000);
+    }
+
+    function stopTimer() { clearInterval(timerInterval); }
+
+    function updateTimerUI(t, total) {
+      const pct = Math.max(0, (t / total) * 100);
+      const bar = document.getElementById('timer-bar');
+      const num = document.getElementById('timer-number');
+      bar.style.width = pct + '%';
+      num.textContent = Math.max(0, t);
+      const warn = t <= total * 0.4 && t > total * 0.2;
+      const danger = t <= total * 0.2;
+      bar.className = 'timer-bar' + (danger?' danger':warn?' warning':'');
+      num.className = 'timer-number' + (danger?' danger':warn?' warning':'');
+    }
+
+    // ─── Resultado de ronda ────────────────────────────────────────────────────
+    socket.on('game:roundResult', ({ results, correctAnswer, explanation, scoreboard }) => {
+      stopTimer();
+      const mine = results.find(r => r.playerId === socket.id);
+      myScore = (scoreboard.find(p => p.id === socket.id) || {}).score || myScore;
+
+      const isOpenEnded = currentQuestion && (currentQuestion.type === 'completeprompt' || currentQuestion.type === 'debate');
+
+      // Mostrar corrección en las opciones
+      if (!isOpenEnded && correctAnswer !== null && correctAnswer !== undefined) {
+        if (currentQuestion.type === 'turing') {
+          ['A','B'].forEach(l => {
+            const c = document.getElementById('turing-'+l);
+            c.classList.remove('selected');
+            if (l === correctAnswer) c.classList.add('correct');
+            else if (c.classList.contains('selected') || document.getElementById('turing-'+l).style.borderColor) {
+              // ya manejado
+            }
+          });
+        } else {
+          const btns = document.querySelectorAll('.option-btn');
+          btns.forEach((b, i) => {
+            if (i === parseInt(correctAnswer)) b.classList.add('correct');
+            else if (b.classList.contains('selected')) b.classList.add('wrong');
+          });
+        }
+      }
+
+      // Feedback card
+      const correct = mine ? mine.correct : false;
+      const pts = mine ? mine.points : 0;
+      document.getElementById('result-icon').textContent = isOpenEnded ? '✍️' : (correct ? '✅' : '❌');
+      document.getElementById('result-title').textContent = isOpenEnded ? 'Respuesta enviada' : (correct ? '¡Correcto!' : 'Incorrecto');
+      document.getElementById('result-title').className = 'result-title' + (isOpenEnded ? '' : correct ? ' correct' : ' wrong');
+      document.getElementById('result-points').textContent = `+${pts} pts`;
+
+      // Explicación
+      const expBox = document.getElementById('round-explanation');
+      if (explanation) { expBox.textContent = explanation; expBox.style.display = 'block'; }
+      else expBox.style.display = 'none';
+
+      // AI response reveal (completeprompt / debate)
+      const aiBox = document.getElementById('ai-response-reveal');
+      if (currentQuestion && currentQuestion.aiResponse) {
+        document.getElementById('ai-response-text').textContent = currentQuestion.aiResponse;
+        aiBox.style.display = 'block';
+      } else if (currentQuestion && currentQuestion.aiArgument) {
+        document.getElementById('ai-response-text').textContent = currentQuestion.aiArgument;
+        aiBox.style.display = 'block';
+      } else { aiBox.style.display = 'none'; }
+
+      // Scoreboard
+      const medals = ['🥇','🥈','🥉'];
+      document.getElementById('result-scoreboard').innerHTML = scoreboard.slice(0,6).map((p,i) => `
+        <li class="score-row ${p.id===socket.id?'card-accent':''}">
+          <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||i+1}</span>
+          <span class="score-avatar">${p.avatar}</span>
+          <span class="score-name">${p.name}${p.id===socket.id?' (tú)':''}</span>
+          <span class="score-pts">${p.score} pts</span>
+        </li>`).join('');
+
+      setTimeout(() => showScreen('screen-round-result'), 300);
+    });
+
+    // ─── Fin del juego ─────────────────────────────────────────────────────────
+    socket.on('game:end', ({ scoreboard }) => {
+      const myRank = scoreboard.findIndex(p => p.id === socket.id) + 1;
+      const myData = scoreboard.find(p => p.id === socket.id);
+
+      const rankMsg = myRank === 1 ? '🏆 ¡CAMPEÓN!' : myRank === 2 ? '🥈 ¡Segundo lugar!' : myRank === 3 ? '🥉 ¡Tercer lugar!' : `Puesto #${myRank}`;
+      document.getElementById('my-final-rank').innerHTML =
+        `<div style="font-family:var(--font-main);font-size:1.5rem;font-weight:900;color:var(--azul);">${rankMsg}</div>
+         <div class="score-my">${myData ? myData.score : 0} puntos</div>`;
+
+      // Podio
+      const top = scoreboard.slice(0,3);
+      const order = top.length >= 2 ? [1,0,2] : [0];
+      document.getElementById('end-podium').innerHTML = order.map(i => {
+        const p = top[i]; if (!p) return '';
+        return `<div class="podium-place podium-${i+1}">
+          <span class="podium-avatar">${p.avatar}</span>
+          <div class="podium-name">${p.name}</div>
+          <div class="podium-pts">${p.score} pts</div>
+          <div class="podium-bar">#${i+1}</div>
+        </div>`;
+      }).join('');
+
+      document.getElementById('end-scoreboard').innerHTML = scoreboard.map((p,i) => `
+        <li class="score-row">
+          <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">#${i+1}</span>
+          <span class="score-avatar">${p.avatar}</span>
+          <span class="score-name">${p.name}${p.id===socket.id?' (tú)':''}</span>
+          <span class="score-pts">${p.score} pts</span>
+        </li>`).join('');
+
+      showScreen('screen-end');
+    });
+
+    // ─── Rounds progress ───────────────────────────────────────────────────────
+    function updateRoundsProgress(round, max) {
+      const el = document.getElementById('rounds-progress-student');
+      el.innerHTML = '';
+      for (let i = 1; i <= Math.min(max, 15); i++) {
+        const d = document.createElement('div');
+        d.className = 'round-dot' + (i < round ? ' done' : i === round ? ' current' : '');
+        el.appendChild(d);
+      }
+    }
+
+    // ─── Errores ───────────────────────────────────────────────────────────────
+    socket.on('error', ({ msg }) => {
+      showJoinError(msg);
+      const btn = document.getElementById('join-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Entrar 🚀';
+      }
+    });
+    socket.on('app:error', ({ msg }) => {
+      showJoinError(msg);
+      const btn = document.getElementById('join-btn');
+      if (btn) {
+        btn.disabled = false;
+        btn.textContent = 'Entrar 🚀';
+      }
+    });
+    socket.on('connect_error', () => showJoinError('No se pudo conectar con el servidor. Intenta recargar la página.'));
+    socket.on('disconnect', () => toast('Desconectado. Reconectando...', 'error'));
+    socket.on('connect', () => { if (roomCode) toast('Reconectado ✓', 'success'); });
+
+    // Enter key en join
+    document.getElementById('join-name').addEventListener('keypress', e => { if(e.key==='Enter') joinRoom(); });
+    document.getElementById('join-code').addEventListener('keypress', e => { if(e.key==='Enter') document.getElementById('join-name').focus(); });
+  </script>
+</body>
+</html>

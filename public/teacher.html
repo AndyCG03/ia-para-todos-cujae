@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel Docente — IA Para Todos</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    .two-col { display: grid; grid-template-columns: 340px 1fr; gap: 1.5rem; align-items: start; }
+    @media(max-width:800px) { .two-col { grid-template-columns: 1fr; } }
+    .section-title { font-family:var(--font-main); font-size:0.8rem; font-weight:800; text-transform:uppercase; letter-spacing:0.1em; color:var(--gris-oscuro); margin-bottom:0.75rem; }
+    .player-count-badge { background:var(--azul-pale); color:var(--azul); border-radius:20px; padding:2px 10px; font-size:0.8rem; font-weight:700; margin-left:0.5rem; }
+    .api-key-note { font-size:0.8rem; color:var(--gris-oscuro); margin-top:0.4rem; line-height:1.5; }
+    .control-row { display:flex; gap:0.75rem; flex-wrap:wrap; }
+    .rounds-input { width:100px; }
+    .status-dot { width:10px; height:10px; border-radius:50%; display:inline-block; margin-right:6px; }
+    .status-dot.online { background:var(--verde); animation:pulse 2s infinite; }
+    @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:0.5} }
+    .create-mascot { width:120px; display:block; margin:0 auto 1rem; border-radius:16px; box-shadow:var(--shadow-sm); }
+    .question-preview {
+      background: #F8FAF8;
+      border: 1px solid rgba(15,111,58,0.14);
+      border-radius: var(--radius-sm);
+      padding: 1rem;
+      font-size: 0.9rem;
+      color: var(--gris-oscuro);
+      margin-top: 0.75rem;
+      max-height: 200px;
+      overflow-y: auto;
+    }
+  </style>
+</head>
+<body>
+  <header class="header">
+    <a href="/" aria-label="Ir al inicio"><img src="/assets/cujae.png" alt="CUJAE" class="header-logo"></a>
+    <div>
+      <div class="header-title">Panel Docente</div>
+      <div class="header-subtitle">Universidad Tecnológica de La Habana</div>
+    </div>
+    <div class="header-spacer"></div>
+    <a href="/" class="btn btn-ghost btn-sm">← Inicio</a>
+  </header>
+
+  <div class="container-wide" style="padding-top:2rem;">
+
+    <!-- STEP 1: Crear sala -->
+    <div id="step-create">
+      <div style="max-width:440px; margin:0 auto;">
+        <div class="card card-lg">
+          <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="create-mascot">
+          <h2 style="margin-bottom:0.25rem;">Crear sesión de juego</h2>
+          <p class="text-muted mb-3">Se generará un código único para que los estudiantes se unan.</p>
+          <div class="form-group">
+            <label class="form-label">Tu nombre</label>
+            <input type="text" id="teacher-name" class="input" placeholder="Prof. García" value="Docente">
+          </div>
+          <div class="form-group">
+            <label class="form-label">API Key de OpenRouter <span style="font-weight:400;color:var(--gris-oscuro)">(opcional)</span></label>
+            <input type="password" id="api-key-input" class="input" placeholder="sk-or-v1-...">
+            <p class="api-key-note">Solo necesaria para módulos con IA (Completa el Prompt y Debate). Los 4 módulos restantes funcionan sin ella. La clave nunca se envía a los estudiantes.</p>
+          </div>
+          <button class="btn btn-primary btn-lg btn-block" id="create-room-btn" onclick="createRoom()">🚀 Crear sala</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- STEP 2: Sala activa -->
+    <div id="step-room" class="hidden">
+      <div class="two-col">
+
+        <!-- Panel izquierdo -->
+        <div>
+          <div class="card mb-2">
+            <div class="section-title">Código de sala</div>
+            <div class="room-code-display" id="room-code-display">─────</div>
+            <p class="text-center text-muted" style="font-size:0.85rem;">Los estudiantes van a <strong>ia-para-todos.cujae.edu.cu/jugar</strong> e ingresan este código</p>
+          </div>
+
+          <div class="card mb-2">
+            <div class="flex items-center justify-between mb-2">
+              <div class="section-title" style="margin:0">Jugadores conectados <span class="player-count-badge" id="player-count">0</span></div>
+              <span id="status-indicator"><span class="status-dot online"></span>En línea</span>
+            </div>
+            <div class="player-grid" id="player-grid">
+              <div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;">Esperando jugadores...</div>
+            </div>
+          </div>
+
+          <div class="card" id="scoreboard-panel" style="display:none;">
+            <div class="section-title">Marcador</div>
+            <ul class="scoreboard" id="live-scoreboard"></ul>
+          </div>
+        </div>
+
+        <!-- Panel derecho -->
+        <div>
+          <!-- Config módulo -->
+          <div class="card mb-2" id="module-config-panel">
+            <h3 class="mb-2">Selecciona un módulo</h3>
+            <div class="modules-grid" id="modules-grid">
+              <!-- generado por JS -->
+            </div>
+            <hr>
+            <div class="flex items-center gap-2 flex-wrap mt-2">
+              <div>
+                <label class="form-label">Número de rondas</label>
+                <input type="number" id="rounds-input" class="input rounds-input" value="5" min="2" max="20">
+              </div>
+              <div style="flex:1"></div>
+              <button class="btn btn-primary btn-lg" id="start-btn" onclick="startGame()" disabled>▶ Iniciar juego</button>
+            </div>
+          </div>
+
+          <!-- Control de juego -->
+          <div class="card mb-2 hidden" id="game-control-panel">
+            <div class="flex items-center justify-between mb-3">
+              <h3>Control de sesión</h3>
+              <div class="rounds-progress" id="rounds-progress-teacher"></div>
+            </div>
+
+            <div id="current-question-display" class="question-preview">Esperando ronda...</div>
+
+            <div class="answer-progress mt-2">
+              <span id="answer-count-text" style="white-space:nowrap;">0 / 0 respuestas</span>
+              <div class="answer-bar"><div class="answer-fill" id="answer-fill" style="width:0%"></div></div>
+            </div>
+
+            <div class="control-row mt-2">
+              <button class="btn btn-primary" onclick="nextRound()">⏭ Siguiente ronda</button>
+              <button class="btn btn-danger btn-sm" onclick="endGame()">⏹ Terminar juego</button>
+            </div>
+          </div>
+
+          <!-- Resultado final -->
+          <div class="card hidden" id="final-panel">
+            <h2 class="text-center mb-3">🏆 Juego terminado</h2>
+            <div id="podium-display" class="podium"></div>
+            <ul class="scoreboard mt-3" id="final-scoreboard"></ul>
+            <div class="control-row mt-3">
+              <button class="btn btn-secondary" onclick="exportResults()">📥 Exportar resultados</button>
+              <button class="btn btn-primary" onclick="newGame()">🔄 Nueva partida</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /container -->
+
+  <div class="toast-container" id="toasts"></div>
+
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    const socket = io({ reconnectionDelay: 1000, reconnectionAttempts: 10 });
+    let roomCode = null;
+    let currentModule = null;
+    let currentRound = 0;
+    let maxRounds = 5;
+    let finalResults = null;
+    let connectedStudents = 0;
+
+    const moduleMeta = {
+      trivia:         { icon:'🧠', name:'Trivia IA',         offline:true },
+      turing:         { icon:'🤖', name:'Desafío Turing',    offline:true },
+      ethics:         { icon:'⚖️', name:'Dilemas Éticos',    offline:true },
+      fakenews:       { icon:'🕵️', name:'¿Real o IA?',       offline:true },
+      completeprompt: { icon:'✍️', name:'Completa el Prompt', offline:false },
+      debate:         { icon:'🗣️', name:'Debate con la IA',  offline:false }
+    };
+
+    function show(id)  { document.getElementById(id).classList.remove('hidden'); }
+    function hide(id)  { document.getElementById(id).classList.add('hidden'); }
+    function toast(msg, type='') {
+      const t = document.createElement('div');
+      t.className = `toast ${type}`;
+      t.textContent = msg;
+      document.getElementById('toasts').appendChild(t);
+      setTimeout(() => t.remove(), 3500);
+    }
+    function showAppError(msg) { toast(msg || 'Ocurrió un error inesperado.', 'error'); }
+    function showNotice(msg) { toast(msg || 'Aviso del sistema.', 'success'); }
+
+    // Render módulos
+    function renderModules() {
+      const grid = document.getElementById('modules-grid');
+      grid.innerHTML = '';
+      Object.entries(moduleMeta).forEach(([key, m]) => {
+        const div = document.createElement('div');
+        div.className = 'module-card' + (m.offline ? '' : ' needs-llm');
+        div.dataset.key = key;
+        div.innerHTML = `
+          <span class="module-icon">${m.icon}</span>
+          <div class="module-name">${m.name}</div>
+          <span class="module-tag">${m.offline ? '✅ Sin internet' : '🌐 Requiere API'}</span>`;
+        div.onclick = () => selectModule(key, div);
+        grid.appendChild(div);
+      });
+    }
+
+    function selectModule(key, el) {
+      document.querySelectorAll('.module-card').forEach(c => c.classList.remove('selected'));
+      el.classList.add('selected');
+      currentModule = key;
+      document.getElementById('start-btn').disabled = false;
+    }
+
+    function createRoom() {
+      if (!socket.connected) {
+        showAppError('No hay conexión con el servidor. Revisa la red e intenta de nuevo.');
+        return;
+      }
+      const name = document.getElementById('teacher-name').value || 'Docente';
+      const btn = document.getElementById('create-room-btn');
+      btn.disabled = true;
+      btn.textContent = 'Creando sala...';
+      socket.emit('teacher:create', { name });
+      setTimeout(() => {
+        if (!roomCode) {
+          btn.disabled = false;
+          btn.textContent = '🚀 Crear sala';
+        }
+      }, 5000);
+    }
+
+    socket.on('teacher:created', ({ code }) => {
+      roomCode = code;
+      const btn = document.getElementById('create-room-btn');
+      btn.disabled = false;
+      btn.textContent = '🚀 Crear sala';
+      document.getElementById('room-code-display').textContent = code;
+      hide('step-create');
+      show('step-room');
+      renderModules();
+      const apiKey = document.getElementById('api-key-input').value.trim();
+      if (apiKey) socket.emit('teacher:setApiKey', { code, apiKey });
+    });
+
+    socket.on('teacher:apiKeySet', () => toast('API Key configurada ✓', 'success'));
+
+    socket.on('room:state', ({ players, round, maxRounds: mr }) => {
+      const students = players.filter(p => !p.isTeacher);
+      connectedStudents = students.length;
+      document.getElementById('player-count').textContent = students.length;
+      const grid = document.getElementById('player-grid');
+      if (students.length === 0) {
+        grid.innerHTML = '<div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;">Esperando jugadores...</div>';
+      } else {
+        grid.innerHTML = students.map(p => `
+          <div class="player-card joined">
+            <span class="player-avatar">${p.avatar}</span>
+            <div class="player-name">${p.name}</div>
+          </div>`).join('');
+      }
+    });
+
+    function startGame() {
+      if (!roomCode) { showAppError('Primero debes crear una sala.'); return; }
+      if (!currentModule) { showAppError('Selecciona un módulo antes de iniciar.'); return; }
+      if (connectedStudents === 0) {
+        showAppError('Aún no hay estudiantes conectados. Comparte el código de sala antes de iniciar.');
+        return;
+      }
+      const rounds = parseInt(document.getElementById('rounds-input').value) || 5;
+      socket.emit('teacher:startModule', { code: roomCode, moduleName: currentModule, rounds });
+    }
+
+    socket.on('game:moduleStart', ({ displayName }) => {
+      hide('module-config-panel');
+      show('game-control-panel');
+      toast(`Módulo iniciado: ${displayName}`, 'success');
+    });
+
+    socket.on('game:roundStart', ({ round, maxRounds: mr }) => {
+      currentRound = round; maxRounds = mr;
+      document.getElementById('answer-fill').style.width = '0%';
+      document.getElementById('answer-count-text').textContent = `0 / ? respuestas`;
+      updateRoundsProgress(round, mr);
+    });
+
+    socket.on('game:question', ({ question }) => {
+      const box = document.getElementById('current-question-display');
+      const txt = question.title || question.prompt || question.topic || question.text || 'Ronda activa';
+      box.textContent = `Ronda ${currentRound}: ${txt}`;
+    });
+
+    socket.on('game:answerCount', ({ answered, total }) => {
+      const pct = total > 0 ? (answered/total*100) : 0;
+      document.getElementById('answer-fill').style.width = pct+'%';
+      document.getElementById('answer-count-text').textContent = `${answered} / ${total} respuestas`;
+    });
+
+    socket.on('game:roundResult', ({ scoreboard }) => {
+      renderScoreboard(scoreboard);
+      document.getElementById('scoreboard-panel').style.display = 'block';
+    });
+
+    socket.on('game:end', ({ scoreboard }) => {
+      finalResults = scoreboard;
+      hide('game-control-panel');
+      show('final-panel');
+      renderPodium(scoreboard);
+      renderFinalScoreboard(scoreboard);
+    });
+
+    function nextRound() { socket.emit('teacher:nextRound', { code: roomCode }); }
+    function endGame()   { if(confirm('¿Terminar el juego ahora?')) socket.emit('teacher:endGame', { code: roomCode }); }
+
+    function updateRoundsProgress(round, max) {
+      const el = document.getElementById('rounds-progress-teacher');
+      el.innerHTML = '';
+      for (let i = 1; i <= max; i++) {
+        const d = document.createElement('div');
+        d.className = 'round-dot' + (i < round ? ' done' : i === round ? ' current' : '');
+        el.appendChild(d);
+      }
+    }
+
+    function renderScoreboard(sb) {
+      const medals = ['🥇','🥈','🥉'];
+      document.getElementById('live-scoreboard').innerHTML = sb.slice(0,8).map((p,i) => `
+        <li class="score-row">
+          <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||i+1}</span>
+          <span class="score-avatar">${p.avatar}</span>
+          <span class="score-name">${p.name}</span>
+          <span class="score-pts">${p.score} pts</span>
+        </li>`).join('');
+    }
+
+    function renderPodium(sb) {
+      const top = sb.slice(0,3);
+      const order = [1,0,2]; // 2nd, 1st, 3rd
+      const podium = document.getElementById('podium-display');
+      podium.innerHTML = order.map(i => {
+        const p = top[i];
+        if (!p) return '';
+        return `<div class="podium-place podium-${i+1}">
+          <span class="podium-avatar">${p.avatar}</span>
+          <div class="podium-name">${p.name}</div>
+          <div class="podium-pts">${p.score} pts</div>
+          <div class="podium-bar">#${i+1}</div>
+        </div>`;
+      }).join('');
+    }
+
+    function renderFinalScoreboard(sb) {
+      document.getElementById('final-scoreboard').innerHTML = sb.map((p,i) => `
+        <li class="score-row">
+          <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">#${i+1}</span>
+          <span class="score-avatar">${p.avatar}</span>
+          <span class="score-name">${p.name}</span>
+          <span class="score-pts">${p.score} pts</span>
+        </li>`).join('');
+    }
+
+    function exportResults() {
+      if (!finalResults) return;
+      const data = {
+        sala: roomCode,
+        fecha: new Date().toLocaleString('es-CU'),
+        modulo: currentModule,
+        resultados: finalResults
+      };
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ia-para-todos-${roomCode}-${Date.now()}.json`;
+      a.click();
+    }
+
+    function newGame() { location.reload(); }
+
+    socket.on('app:error', ({ msg }) => showAppError(msg));
+    socket.on('app:notice', ({ msg }) => showNotice(msg));
+    socket.on('error', ({ msg }) => showAppError(msg));
+    socket.on('connect', () => toast('Conectado al servidor', 'success'));
+    socket.on('connect_error', () => showAppError('No se pudo conectar con el servidor. Intenta recargar la página.'));
+    socket.on('disconnect', () => showAppError('Desconectado del servidor. Las acciones se reanudarán al reconectar.'));
+  </script>
+</body>
+</html>
