@@ -372,7 +372,7 @@
     });
 
     // ─── Inicio de módulo ──────────────────────────────────────────────────────
-    const moduleIcons = { trivia:'🧠', turing:'🤖', ethics:'⚖️', fakenews:'🕵️', completeprompt:'✍️', debate:'🗣️' };
+    const moduleIcons = { trivia:'🧠', turing:'🤖', ethics:'⚖️', fakenews:'🕵️', completeprompt:'✍️', debate:'🗣️', hallucination:'🧐' };
 
     socket.on('game:moduleStart', ({ moduleName, displayName, description }) => {
       if (!roomCode) return;
@@ -411,7 +411,7 @@
       document.getElementById('q-topic').style.display = 'none';
       document.getElementById('q-scenario').style.display = 'none';
 
-      const badges = { trivia:'🧠 Trivia', turing:'🤖 Turing', ethics:'⚖️ Ética', fakenews:'🕵️ ¿Real o IA?', completeprompt:'✍️ Prompt', debate:'🗣️ Debate' };
+      const badges = { trivia:'🧠 Trivia', turing:'🤖 Turing', ethics:'⚖️ Ética', fakenews:'🕵️ ¿Real o IA?', completeprompt:'✍️ Prompt', debate:'🗣️ Debate', hallucination:'🧐 Alucinaciones' };
       document.getElementById('q-type-badge').textContent = badges[q.type]||'Pregunta';
 
       if (q.type === 'turing') {
@@ -438,7 +438,7 @@
         // Multiple choice (trivia, ethics, fakenews)
         const title = q.title || q.text || '';
         document.getElementById('q-text').textContent = title;
-        if (q.type === 'ethics' && q.text !== q.title) {
+        if ((q.type === 'ethics' || q.type === 'hallucination') && q.text !== q.title) {
           const sc = document.getElementById('q-scenario');
           sc.textContent = q.text;
           sc.style.display = 'block';

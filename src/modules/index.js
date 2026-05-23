@@ -57,6 +57,79 @@ const ethicsCases = [
   }
 ];
 
+const hallucinationItems = [
+  {
+    topic: 'Historia de Cuba',
+    context: 'La IA escribió este texto sobre José Martí: "José Martí fue un héroe nacional cubano, líder del movimiento independentista. Nació en 1855 en La Habana. Fue poeta, ensayista y periodista. Murió en combate en 1895 en Dos Ríos."',
+    options: ['Fue líder del movimiento independentista cubano', 'Nació en 1855 en La Habana', 'Fue poeta, ensayista y periodista', 'Murió en combate en 1895 en Dos Ríos'],
+    correct: 1,
+    explanation: 'José Martí nació el 28 de enero de 1853, no en 1855. La IA inventó la fecha, una alucinación clásica sobre datos numéricos.'
+  },
+  {
+    topic: 'Ciencia',
+    context: 'La IA generó este texto: "El agua es una sustancia compuesta por dos átomos de hidrógeno y uno de oxígeno. Hierve a 120°C al nivel del mar y se congela a 0°C. Es esencial para la vida en la Tierra."',
+    options: ['Está compuesta por dos átomos de hidrógeno y uno de oxígeno', 'Hierve a 120°C al nivel del mar', 'Se congela a 0°C', 'Es esencial para la vida en la Tierra'],
+    correct: 1,
+    explanation: 'El agua hierve a 100°C al nivel del mar, no a 120°C. La IA se inventó un dato numérico falso, un error típico en modelos de lenguaje.'
+  },
+  {
+    topic: 'Literatura',
+    context: 'La IA escribió: "Gabriel García Márquez, premio Nobel colombiano, escribió obras como Cien Años de Soledad, El Amor en los Tiempos del Cólera y La ciudad y los perros."',
+    options: ['García Márquez fue premio Nobel colombiano', 'Escribió Cien Años de Soledad', 'Escribió La ciudad y los perros', 'Escribió El Amor en los Tiempos del Cólera'],
+    correct: 2,
+    explanation: '"La ciudad y los perros" la escribió Mario Vargas Llosa, no García Márquez. La IA mezcló autores, una alucinación frecuente al asociar obras famosas.'
+  },
+  {
+    topic: 'Tecnología',
+    context: 'Texto generado por IA: "El primer iPhone fue presentado por Steve Jobs en 2005. Revolucionó la industria de los teléfonos inteligentes al introducir una pantalla táctil sin teclado físico."',
+    options: ['Fue presentado por Steve Jobs', 'Revolucionó la industria de los teléfonos', 'Introdujo una pantalla táctil sin teclado físico', 'Fue presentado en 2005'],
+    correct: 3,
+    explanation: 'El primer iPhone se presentó el 9 de enero de 2007, no en 2005. La IA inventó el año, posiblemente confundiendo fechas de desarrollo con el lanzamiento.'
+  },
+  {
+    topic: 'Geografía',
+    context: 'La IA dice: "Australia es un país y continente. Su capital es Sídney, la ciudad más poblada. El inglés es el idioma oficial y su moneda es el dólar australiano."',
+    options: ['Australia es un país y continente', 'Su capital es Sídney', 'El inglés es el idioma oficial', 'Su moneda es el dólar australiano'],
+    correct: 1,
+    explanation: 'La capital de Australia es Canberra, no Sídney. Es un error común que la IA reproduce. Sídney es la ciudad más grande, pero no la capital.'
+  },
+  {
+    topic: 'Deportes',
+    context: 'Texto de IA sobre básquetbol: "Michael Jordan es considerado el mejor jugador de baloncesto de la historia. Ganó 8 campeonatos de la NBA con los Chicago Bulls y 2 medallas de oro olímpicas."',
+    options: ['Es considerado el mejor jugador de baloncesto', 'Ganó 8 campeonatos de la NBA con los Bulls', 'Ganó 2 medallas de oro olímpicas'],
+    correct: 1,
+    explanation: 'Michael Jordan ganó 6 campeonatos de la NBA, no 8. La IA exageró el número, una alucinación típica con estadísticas deportivas.'
+  },
+  {
+    topic: 'Música',
+    context: 'La IA generó: "Imagine es una de las canciones más icónicas de John Lennon. Fue escrita en 1975 y llama a imaginar un mundo sin guerras ni fronteras."',
+    options: ['Es una de las canciones más icónicas de John Lennon', 'Fue escrita en 1975', 'Llama a imaginar un mundo sin guerras ni fronteras'],
+    correct: 1,
+    explanation: 'John Lennon escribió "Imagine" en 1971, no en 1975. La IA inventó el año de creación, otra alucinación con fechas.'
+  },
+  {
+    topic: 'Medicina',
+    context: 'Texto generado por IA sobre el cuerpo humano: "Un recién nacido tiene aproximadamente 206 huesos. Al crecer, algunos huesos se fusionan y el adulto termina con 270 huesos."',
+    options: ['Un recién nacido tiene aproximadamente 206 huesos', 'Al crecer, algunos huesos se fusionan', 'El adulto termina con 270 huesos'],
+    correct: 0,
+    explanation: 'Es al revés: los bebés nacen con unos 270 huesos y al fusionarse algunos, el adulto queda con 206. La IA invirtió los números.'
+  },
+  {
+    topic: 'Cine',
+    context: 'La IA escribió: "Titanic, dirigida por James Cameron, ganó 11 premios Óscar en 1997. Está protagonizada por Leonardo DiCaprio y Kate Winslet. Cameron también dirigió Avatar."',
+    options: ['Ganó 11 premios Óscar', 'Está protagonizada por DiCaprio y Winslet', 'Titanic se estrenó en 1995', 'Cameron también dirigió Avatar'],
+    correct: 2,
+    explanation: 'Titanic se estrenó en 1997, no en 1995. La IA se equivocó en el año de estreno, confundiendo el año del récord de Óscar con el año de producción.'
+  },
+  {
+    topic: 'Cuba',
+    context: 'Texto de IA sobre la cultura cubana: "El son cubano y la salsa tienen raíces en la isla. El bulevar más famoso de La Habana es el Malecón, que mide aproximadamente 4 kilómetros de largo."',
+    options: ['El son cubano tiene raíces en la isla', 'El bulevar más famoso de La Habana es el Malecón', 'El Malecón mide aproximadamente 4 kilómetros'],
+    correct: 2,
+    explanation: 'El Malecón de La Habana mide aproximadamente 8 kilómetros, no 4. La IA redujo la medida a la mitad, otra alucinación numérica.'
+  }
+];
+
 const fakeNewsItems = [
   { text: 'Científicos de la Universidad de La Habana desarrollaron un modelo de IA que puede predecir terremotos con 48 horas de anticipación analizando patrones sísmicos locales.', isAI: false, explanation: 'Esta noticia podría ser real: es una aplicación plausible de IA en sismología, con lenguaje periodístico natural.' },
   { text: 'La inteligencia artificial ha alcanzado la conciencia plena en un laboratorio secreto de California. Los investigadores afirman que el sistema pide derechos y expresa emociones complejas como el miedo y la alegría.', isAI: true, explanation: 'Texto generado por IA: usa lenguaje dramático, hace afirmaciones extraordinarias sin fuentes verificables y mezcla conceptos científicos con ficción de manera vaga.' },
@@ -311,6 +384,39 @@ const modules = {
     scoreRound(question, answers) {
       return Object.values(answers).map(({ playerId }) => {
         return { playerId, points: 75, correct: true };
+      });
+    }
+  },
+
+  // ── 7. CAZA DE ALUCINACIONES (sin LLM) ────────────────────────────────
+  hallucination: {
+    displayName: '🧐 Caza de Alucinaciones',
+    description: 'Detecta afirmaciones falsas generadas por IA',
+    requiresLLM: false,
+    defaultRounds: 8,
+    timeLimit: 30,
+    getOfflineQuestion(room) {
+      const used = room._usedHallu || [];
+      const available = hallucinationItems.filter((_, i) => !used.includes(i));
+      const pool = available.length > 0 ? available : hallucinationItems;
+      const item = pool[Math.floor(Math.random() * pool.length)];
+      const idx = hallucinationItems.indexOf(item);
+      if (!room._usedHallu) room._usedHallu = [];
+      room._usedHallu.push(idx);
+      return {
+        type: 'hallucination',
+        title: item.topic,
+        text: item.context,
+        options: item.options,
+        correctAnswer: item.correct,
+        explanation: item.explanation
+      };
+    },
+    scoreRound(question, answers) {
+      return Object.values(answers).map(({ playerId, answer, timeLeft }) => {
+        const correct = parseInt(answer) === question.correctAnswer;
+        const points = correct ? Math.max(100, Math.round(50 + (timeLeft || 0) * 5)) : 0;
+        return { playerId, points, correct };
       });
     }
   }
