@@ -96,7 +96,7 @@ function touchRoom(room) {
 }
 
 // ─── Cleanup de salas abandonadas (cada 30s, elimina las que lleven 2 min sin actividad) ─
-const ROOM_IDLE_MS = 60000;
+const ROOM_IDLE_MS = 300000;
 const ROOM_CLEANUP_INTERVAL = 30000;
 
 function cleanupRooms() {

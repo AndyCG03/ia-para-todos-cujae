@@ -277,6 +277,8 @@
     let currentRound = 0;
     let maxRounds = 5;
     let currentModuleName = '';
+    const sfxCorrect = new Audio('/sounds/correct.mp3');
+    const sfxIncorrect = new Audio('/sounds/incorrect.mp3');
 
     const avatars = ['🎓','😊','🤓','😎','🦁','🐯','🦊','🐼','🐸','🦅','🌟','⚡','🎯','🚀','💡','🔬','🎮','🏆','🎨','🌺'];
 
@@ -595,7 +597,10 @@
           <span class="score-pts">${p.score} pts</span>
         </li>`).join('');
 
-      setTimeout(() => showScreen('screen-round-result'), 300);
+      setTimeout(() => {
+        if (!isOpenEnded) (correct ? sfxCorrect : sfxIncorrect).play().catch(() => {});
+        showScreen('screen-round-result');
+      }, 2000);
     });
 
     // ─── Fin del juego ─────────────────────────────────────────────────────────
