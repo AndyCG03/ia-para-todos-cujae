@@ -41,7 +41,7 @@ function generateCode() {
 
 function getRoomPublicState(room) {
   const players = [...room.players.values()].map(p => ({
-    id: p.id, name: p.name, score: p.score, avatar: p.avatar
+    id: p.id, name: p.name, score: p.score, avatar: p.avatar, isTeacher: p.isTeacher
   }));
   return {
     code: room.code,
