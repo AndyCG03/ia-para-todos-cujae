@@ -31,7 +31,8 @@ function createRoom(code, teacherId) {
     scores: {},
     currentQuestion: null,
     answers: {},
-    timer: null
+    timer: null,
+    lastActivity: Date.now()
   };
 }
 
@@ -89,6 +90,34 @@ function normalizeRoomCode(code) {
 function emitAppError(socket, msg, details = {}) {
   socket.emit('app:error', { msg, ...details });
 }
+
+function touchRoom(room) {
+  room.lastActivity = Date.now();
+}
+
+// ─── Cleanup de salas abandonadas (cada 30s, elimina las que lleven 2 min sin actividad) ─
+const ROOM_IDLE_MS = 60000;
+const ROOM_CLEANUP_INTERVAL = 30000;
+
+function cleanupRooms() {
+  const now = Date.now();
+  for (const [code, room] of rooms) {
+    const teacherOnline = room.teacherId && io.sockets.sockets.has(room.teacherId);
+    const students = [...room.players.values()].filter(p => !p.isTeacher);
+    const idle = now - (room.lastActivity || now);
+
+    // Muerta si: no hay nadie, o el profe se fue y pasaron 2 min, o quedó en results por 2 min
+    const dead = (students.length === 0 && !teacherOnline) ||
+                 (!teacherOnline && idle > ROOM_IDLE_MS) ||
+                 (room.phase === 'results' && idle > ROOM_IDLE_MS);
+    if (dead) {
+      clearTimeout(room.timer);
+      io.to(code).emit('room:closed', { reason: 'Sala cerrada por inactividad.' });
+      rooms.delete(code);
+    }
+  }
+}
+setInterval(cleanupRooms, ROOM_CLEANUP_INTERVAL);
 
 // ─── Socket.io ────────────────────────────────────────────────────────────────
 io.on('connection', (socket) => {
@@ -161,6 +190,7 @@ io.on('connection', (socket) => {
     socket.join(normalizedCode);
     socket.data.roomCode = normalizedCode;
     socket.data.role = 'student';
+    touchRoom(room);
     socket.emit('player:joined', { code: normalizedCode });
     io.to(normalizedCode).emit('room:state', getRoomPublicState(room));
   });
@@ -188,6 +218,7 @@ io.on('connection', (socket) => {
     room.phase = 'playing';
     room.scores = {};
     [...room.players.values()].forEach(p => { p.score = 0; });
+    touchRoom(room);
 
     io.to(room.code).emit('room:state', getRoomPublicState(room));
     io.to(room.code).emit('game:moduleStart', { moduleName, displayName: mod.displayName, description: mod.description });
@@ -255,7 +286,8 @@ io.on('connection', (socket) => {
     if (!room) return;
     room.players.delete(socket.id);
     if (room.teacherId === socket.id || socket.data.role === 'teacher') {
-      io.to(code).emit('app:error', { msg: 'El docente se desconectó. Sala cerrada.' });
+      clearTimeout(room.timer);
+      io.to(code).emit('room:closed', { reason: 'El docente se desconectó. Sala cerrada.' });
       rooms.delete(code);
     } else {
       io.to(code).emit('room:state', getRoomPublicState(room));
@@ -321,6 +353,7 @@ function resolveRound(room, io) {
 
 function endGame(room, io) {
   room.phase = 'results';
+  touchRoom(room);
   const scoreboard = [...room.players.values()]
     .filter(p => !p.isTeacher)
     .sort((a, b) => b.score - a.score)

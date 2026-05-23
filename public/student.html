@@ -374,6 +374,7 @@
     const moduleIcons = { trivia:'🧠', turing:'🤖', ethics:'⚖️', fakenews:'🕵️', completeprompt:'✍️', debate:'🗣️' };
 
     socket.on('game:moduleStart', ({ moduleName, displayName, description }) => {
+      if (!roomCode) return;
       currentModuleName = moduleName;
       document.getElementById('module-intro-icon').textContent = moduleIcons[moduleName]||'🎮';
       document.getElementById('module-intro-name').textContent = displayName;
@@ -384,6 +385,7 @@
     });
 
     socket.on('game:roundStart', ({ round, maxRounds: mr }) => {
+      if (!roomCode) return;
       currentRound = round; maxRounds = mr; hasAnswered = false;
       updateRoundsProgress(round, mr);
       document.getElementById('round-label').textContent = `Ronda ${round} / ${mr}`;
@@ -391,6 +393,7 @@
 
     // ─── Pregunta ──────────────────────────────────────────────────────────────
     socket.on('game:question', ({ question, timeLimit }) => {
+      if (!roomCode) return;
       currentQuestion = question;
       hasAnswered = false;
       showScreen('screen-playing');
@@ -531,6 +534,7 @@
 
     // ─── Resultado de ronda ────────────────────────────────────────────────────
     socket.on('game:roundResult', ({ results, correctAnswer, explanation, scoreboard }) => {
+      if (!roomCode) return;
       stopTimer();
       const mine = results.find(r => r.playerId === socket.id);
       myScore = (scoreboard.find(p => p.id === socket.id) || {}).score || myScore;
@@ -595,6 +599,7 @@
 
     // ─── Fin del juego ─────────────────────────────────────────────────────────
     socket.on('game:end', ({ scoreboard }) => {
+      if (!roomCode) return;
       const myRank = scoreboard.findIndex(p => p.id === socket.id) + 1;
       const myData = scoreboard.find(p => p.id === socket.id);
 
@@ -654,6 +659,14 @@
         btn.disabled = false;
         btn.textContent = 'Entrar 🚀';
       }
+    });
+    socket.on('room:closed', ({ reason }) => {
+      showJoinError(reason || 'Sala cerrada.');
+      roomCode = '';
+      currentRound = 0;
+      hasAnswered = false;
+      clearInterval(timerInterval);
+      showScreen('screen-join');
     });
     socket.on('connect_error', () => showJoinError('No se pudo conectar con el servidor. Intenta recargar la página.'));
     socket.on('disconnect', () => toast('Desconectado. Reconectando...', 'error'));
