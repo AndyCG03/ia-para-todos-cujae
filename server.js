@@ -278,6 +278,20 @@ io.on('connection', (socket) => {
     endGame(room, io);
   });
 
+  // Docente: reclamar sala tras reconexión
+  socket.on('teacher:reclaim', ({ code }) => {
+    const room = rooms.get(normalizeRoomCode(code));
+    if (!room) { emitAppError(socket, 'La sala ya no existe. Crea una nueva.'); return; }
+    room.teacherId = socket.id;
+    touchRoom(room);
+    socket.join(room.code);
+    socket.data.roomCode = room.code;
+    socket.data.role = 'teacher';
+    socket.emit('teacher:created', { code: room.code });
+    socket.emit('room:state', getRoomPublicState(room));
+    io.to(room.code).emit('app:notice', { msg: 'El docente se ha reconectado.' });
+  });
+
   // Desconexión
   socket.on('disconnect', () => {
     const code = socket.data.roomCode;
@@ -287,10 +301,9 @@ io.on('connection', (socket) => {
     room.players.delete(socket.id);
     if (room.teacherId === socket.id || socket.data.role === 'teacher') {
       clearTimeout(room.timer);
-      io.to(code).emit('room:closed', { reason: 'El docente se desconectó. Sala cerrada.' });
-      rooms.delete(code);
+      io.to(room.code).emit('room:state', getRoomPublicState(room));
     } else {
-      io.to(code).emit('room:state', getRoomPublicState(room));
+      io.to(room.code).emit('room:state', getRoomPublicState(room));
     }
   });
 });

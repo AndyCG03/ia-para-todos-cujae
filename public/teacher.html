@@ -374,7 +374,10 @@
     socket.on('app:error', ({ msg }) => showAppError(msg));
     socket.on('app:notice', ({ msg }) => showNotice(msg));
     socket.on('error', ({ msg }) => showAppError(msg));
-    socket.on('connect', () => toast('Conectado al servidor', 'success'));
+    socket.on('connect', () => {
+      toast('Conectado al servidor', 'success');
+      if (roomCode) socket.emit('teacher:reclaim', { code: roomCode });
+    });
     socket.on('connect_error', () => showAppError('No se pudo conectar con el servidor. Intenta recargar la página.'));
     socket.on('disconnect', () => showAppError('Desconectado del servidor. Las acciones se reanudarán al reconectar.'));
   </script>
