@@ -169,17 +169,32 @@ io.on('connection', (socket) => {
       emitAppError(socket, 'Sala no encontrada. Verifica el código o pide al docente que cree una nueva sala.');
       return;
     }
+
+    // Reconexión: el jugador ya existía con otro socket.id
+    const students = [...room.players.values()].filter(p => !p.isTeacher);
+    const existing = students.find(p => p.name.trim().toLowerCase() === playerName.toLowerCase());
+    if (existing && room.phase !== 'lobby') {
+      // Reasignar al nuevo socket.id
+      room.players.delete(existing.id);
+      existing.id = socket.id;
+      room.players.set(socket.id, existing);
+      socket.join(normalizedCode);
+      socket.data.roomCode = normalizedCode;
+      socket.data.role = 'student';
+      touchRoom(room);
+      socket.emit('player:joined', { code: normalizedCode, reconnected: true, score: existing.score, streak: existing.streak });
+      return;
+    }
+
     if (room.phase !== 'lobby') {
       emitAppError(socket, 'El juego ya comenzó. Espera a que el docente inicie una nueva partida.');
       return;
     }
-
-    const students = [...room.players.values()].filter(p => !p.isTeacher);
     if (students.length >= MAX_PLAYERS_PER_ROOM) {
       emitAppError(socket, `La sala está llena. Máximo permitido: ${MAX_PLAYERS_PER_ROOM} estudiantes.`);
       return;
     }
-    if (students.some(p => p.name.trim().toLowerCase() === playerName.toLowerCase())) {
+    if (existing) {
       emitAppError(socket, 'Ya hay un estudiante con ese nombre en la sala. Usa un nombre distinto.');
       return;
     }

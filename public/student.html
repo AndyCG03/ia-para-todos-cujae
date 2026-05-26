@@ -242,6 +242,14 @@
     </div><!-- /screen-inner -->
   </div>
 
+  <!-- PANTALLA 4.5: COUNTDOWN ENTRE RONDAS -->
+  <div id="screen-countdown" class="game-screen">
+    <div class="screen-inner" style="align-items:center;justify-content:center;text-align:center;">
+      <div style="font-size:1.2rem;color:var(--text-muted);margin-bottom:1rem;">Próxima ronda en</div>
+      <div id="countdown-number" style="font-size:6rem;font-weight:900;color:var(--azul);line-height:1;animation:streakPulse 0.5s ease;"></div>
+    </div>
+  </div>
+
   <!-- PANTALLA 5: RESULTADO DE RONDA -->
   <div id="screen-round-result" class="game-screen">
     <div class="screen-inner">
@@ -260,7 +268,7 @@
         <div class="section-title">Marcador actual</div>
         <ul class="scoreboard" id="result-scoreboard"></ul>
       </div>
-      <p class="text-center text-muted mt-2" style="font-size:0.85rem;">Esperando la siguiente ronda...</p>
+      <p class="text-center text-muted mt-2" style="font-size:0.85rem;" id="next-round-label">Esperando la siguiente ronda...</p>
     </div>
   </div>
 
@@ -296,6 +304,7 @@
     let currentModuleName = '';
     const sfxCorrect = new Audio('/sounds/correct.mp3');
     const sfxIncorrect = new Audio('/sounds/incorrect.mp3');
+    const sfxCountdown = new Audio('/sounds/countdown.mp3');
 
     const avatars = ['🎓','😊','🤓','😎','🦁','🐯','🦊','🐼','🐸','🦅','🌟','⚡','🎯','🚀','💡','🔬','🎮','🏆','🎨','🌺'];
 
@@ -359,6 +368,9 @@
       btn.disabled = true;
       btn.textContent = 'Entrando...';
       socket.emit('player:join', { code, name, avatar: playerAvatar });
+      sessionStorage.setItem('rejoin', JSON.stringify({ code, name, avatar: playerAvatar }));
+      // Desbloquear audio en contexto de interacción del usuario
+      [sfxCorrect, sfxIncorrect, sfxCountdown].forEach(a => { a.play().catch(()=>{}); a.pause(); a.currentTime = 0; });
       setTimeout(() => {
         if (document.getElementById('screen-join').classList.contains('active')) {
           btn.disabled = false;
@@ -367,7 +379,7 @@
       }, 5000);
     }
 
-    socket.on('player:joined', ({ code }) => {
+    socket.on('player:joined', ({ code, reconnected, score, streak: s }) => {
       const btn = document.getElementById('join-btn');
       btn.disabled = false;
       btn.textContent = 'Entrar 🚀';
@@ -375,7 +387,13 @@
       document.getElementById('header-room-code').textContent = code;
       document.getElementById('lobby-welcome').textContent = `¡Hola, ${playerName}!`;
       document.getElementById('lobby-avatar').textContent = playerAvatar;
-      showScreen('screen-lobby');
+      if (reconnected) {
+        myScore = score || 0;
+        showScreen('screen-round-result');
+        toast('Reconectado a la partida ✓', 'success');
+      } else {
+        showScreen('screen-lobby');
+      }
     });
 
     socket.on('room:state', ({ players }) => {
@@ -404,11 +422,42 @@
       showScreen('screen-module-intro');
     });
 
+    let countdownDone = false;
+    let pendingQuestion = null;
+
     socket.on('game:roundStart', ({ round, maxRounds: mr }) => {
       if (!roomCode) return;
       currentRound = round; maxRounds = mr; hasAnswered = false;
+      countdownDone = false;
+      pendingQuestion = null;
       updateRoundsProgress(round, mr);
       document.getElementById('round-label').textContent = `Ronda ${round} / ${mr}`;
+
+      showScreen('screen-countdown');
+      sfxCountdown.currentTime = 0;
+      sfxCountdown.play().catch(e => console.error('countdown audio error:', e));
+      const numEl = document.getElementById('countdown-number');
+      let n = 3;
+      numEl.textContent = n;
+      const tick = setInterval(() => {
+        n--;
+        if (n > 0) {
+          numEl.style.animation = 'none';
+          void numEl.offsetWidth;
+          numEl.style.animation = 'streakPulse 0.5s ease';
+          numEl.textContent = n;
+        } else {
+          clearInterval(tick);
+          countdownDone = true;
+          if (pendingQuestion) {
+            const { question, timeLimit } = pendingQuestion;
+            pendingQuestion = null;
+            showScreen('screen-playing');
+            renderQuestion(question);
+            startTimer(timeLimit || 20);
+          }
+        }
+      }, 1000);
     });
 
     // ─── Pregunta ──────────────────────────────────────────────────────────────
@@ -416,9 +465,13 @@
       if (!roomCode) return;
       currentQuestion = question;
       hasAnswered = false;
-      showScreen('screen-playing');
-      renderQuestion(question);
-      startTimer(timeLimit || 20);
+      if (countdownDone) {
+        showScreen('screen-playing');
+        renderQuestion(question);
+        startTimer(timeLimit || 20);
+      } else {
+        pendingQuestion = { question, timeLimit };
+      }
     });
 
     function renderQuestion(q) {
@@ -653,6 +706,7 @@
     // ─── Fin del juego ─────────────────────────────────────────────────────────
     socket.on('game:end', ({ scoreboard }) => {
       if (!roomCode) return;
+      sessionStorage.removeItem('rejoin');
       const myRank = scoreboard.findIndex(p => p.id === socket.id) + 1;
       const myData = scoreboard.find(p => p.id === socket.id);
 
@@ -723,7 +777,24 @@
     });
     socket.on('connect_error', () => showJoinError('No se pudo conectar con el servidor. Intenta recargar la página.'));
     socket.on('disconnect', () => toast('Desconectado. Reconectando...', 'error'));
-    socket.on('connect', () => { if (roomCode) toast('Reconectado ✓', 'success'); });
+    socket.on('connect', () => {
+      if (roomCode) {
+        toast('Reconectado ✓', 'success');
+        socket.emit('player:join', { code: roomCode, name: playerName, avatar: playerAvatar });
+      } else {
+        // Intento de rejoin desde sessionStorage (recarga de página)
+        const saved = sessionStorage.getItem('rejoin');
+        if (saved) {
+          try {
+            const { code, name, avatar } = JSON.parse(saved);
+            playerName = name; playerAvatar = avatar; roomCode = code;
+            document.getElementById('join-name').value = name;
+            document.getElementById('join-code').value = code;
+            socket.emit('player:join', { code, name, avatar });
+          } catch(e) { sessionStorage.removeItem('rejoin'); }
+        }
+      }
+    });
 
     // Enter key en join
     document.getElementById('join-name').addEventListener('keypress', e => { if(e.key==='Enter') joinRoom(); });
