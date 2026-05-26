@@ -184,8 +184,12 @@ io.on('connection', (socket) => {
       return;
     }
     room.players.set(socket.id, {
-      id: socket.id, name: playerName, score: 0,
-      avatar: avatar || '🎮', isTeacher: false
+      id: socket.id,
+      name: playerName,
+      score: 0,
+      streak: 0,
+      avatar: avatar || '🎮',
+      isTeacher: false
     });
     socket.join(normalizedCode);
     socket.data.roomCode = normalizedCode;
@@ -217,7 +221,7 @@ io.on('connection', (socket) => {
     room.round = 0;
     room.phase = 'playing';
     room.scores = {};
-    [...room.players.values()].forEach(p => { p.score = 0; });
+    [...room.players.values()].forEach(p => { p.score = 0; p.streak = 0; });
     touchRoom(room);
 
     io.to(room.code).emit('room:state', getRoomPublicState(room));
@@ -344,17 +348,62 @@ async function startNextRound(room, io) {
 
 function resolveRound(room, io) {
   const mod = modules[room.module];
-  const results = mod.scoreRound(room.currentQuestion, room.answers, room.players);
+  const results = mod.scoreRound(
+    room.currentQuestion,
+    room.answers,
+    room.players
+  );
 
-  results.forEach(({ playerId, points, correct }) => {
-    const player = room.players.get(playerId);
-    if (player) player.score += points;
+  // ─── Incluir jugadores que no respondieron ──────────
+  room.players.forEach((player, id) => {
+    if (!player.isTeacher && !results.find(r => r.playerId === id)) {
+      results.push({ playerId: id, points: 0, correct: false });
+    }
   });
 
+  // ─── Aplicar score + streak ─────────────────────────
+  results.forEach(result => {
+    const player = room.players.get(result.playerId);
+
+    if (!player) return;
+
+    // Correcta → aumenta streak
+    if (result.correct) {
+      player.streak = (player.streak || 0) + 1;
+    } else {
+      player.streak = 0;
+    }
+
+    // Bonus por streak
+    let streakBonus = 0;
+
+    if (player.streak >= 5) {
+      streakBonus = 100;
+    }
+    else if (player.streak >= 3) {
+      streakBonus = 50;
+    }
+
+    result.points += streakBonus;
+
+    // Enviar al cliente
+    result.streak = player.streak;
+    result.streakBonus = streakBonus;
+
+    // Score final
+    player.score += result.points;
+  });
+
+  // ─── Scoreboard ─────────────────────────────────────
   const scoreboard = [...room.players.values()]
     .filter(p => !p.isTeacher)
     .sort((a, b) => b.score - a.score)
-    .map(p => ({ id: p.id, name: p.name, avatar: p.avatar, score: p.score }));
+    .map(p => ({
+      id: p.id,
+      name: p.name,
+      avatar: p.avatar,
+      score: p.score
+    }));
 
   io.to(room.code).emit('game:roundResult', {
     results,

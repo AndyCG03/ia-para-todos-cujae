@@ -81,7 +81,23 @@
       animation:popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
     }
     @keyframes popIn { from{transform:scale(0.5);opacity:0} to{transform:scale(1);opacity:1} }
+    @keyframes streakPulse { 0%{transform:scale(0.7);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
 
+    .streak-box {
+      margin-top: 0.8rem;
+      display: inline-block;
+      padding: 0.6rem 1rem;
+      border-radius: 999px;
+      background: #FFF3CD;
+      color: #8A5300;
+      font-weight: 800;
+      animation: streakPulse 0.5s ease;
+    }
+
+    .streak-super {
+      background: #FFD7D7;
+      color: #A1001A;
+    }
     /* AI response box for debate/completeprompt */
     .ai-response-box {
       background:#F8FAF8;
@@ -233,6 +249,7 @@
         <span class="result-icon" id="result-icon">✅</span>
         <div class="result-title" id="result-title">¡Correcto!</div>
         <div class="points-pop" id="result-points">+150 pts</div>
+          <div id="streak-display"></div>
       </div>
       <div class="explanation-box" id="round-explanation" style="display:none;"></div>
       <div class="ai-response-box" id="ai-response-reveal" style="display:none;">
@@ -567,10 +584,40 @@
       // Feedback card
       const correct = mine ? mine.correct : false;
       const pts = mine ? mine.points : 0;
+      const streak = mine ? mine.streak : 0;
+      const streakBonus = mine ? mine.streakBonus : 0;
       document.getElementById('result-icon').textContent = isOpenEnded ? '✍️' : (correct ? '✅' : '❌');
       document.getElementById('result-title').textContent = isOpenEnded ? 'Respuesta enviada' : (correct ? '¡Correcto!' : 'Incorrecto');
       document.getElementById('result-title').className = 'result-title' + (isOpenEnded ? '' : correct ? ' correct' : ' wrong');
       document.getElementById('result-points').textContent = `+${pts} pts`;
+      const streakEl = document.getElementById('streak-display');
+
+      if (streak >= 5) {
+        streakEl.innerHTML = `
+          <div class="streak-box streak-super">
+            🚀 ¡Racha imparable! x${streak}<br>
+            +${streakBonus} bonus
+          </div>
+        `;
+      }
+      else if (streak >= 3) {
+        streakEl.innerHTML = `
+          <div class="streak-box">
+            🔥 Racha de ${streak}<br>
+            +${streakBonus} bonus
+          </div>
+        `;
+      }
+      else if (streak >= 2) {
+        streakEl.innerHTML = `
+          <div class="streak-box">
+            ⚡ Vas en racha x${streak}
+          </div>
+        `;
+      }
+      else {
+        streakEl.innerHTML = '';
+      }
 
       // Explicación
       const expBox = document.getElementById('round-explanation');
