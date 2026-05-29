@@ -6,6 +6,7 @@
   <title>Jugar — IA Para Todos</title>
   <link rel="icon" type="image/png" href="/assets/cujae.png">
   <link rel="stylesheet" href="/css/style.css">
+  <script src="/js/i18n.js"></script>
   <style>
     body { background: var(--gris-claro); }
     .game-screen { display:none; min-height:calc(100vh - 64px); flex-direction:column; }
@@ -129,7 +130,8 @@
       <div class="header-subtitle">Universidad Tecnológica de La Habana</div>
     </div>
     <div class="header-spacer"></div>
-    <a href="/" class="btn btn-ghost btn-sm">← Inicio</a>
+    <div id="lang-switcher-container"></div>
+    <a href="/" class="btn btn-ghost btn-sm" data-i18n="nav.back"></a>
     <div id="header-room-code" style="display:none" class="header-badge"></div>
   </header>
 
@@ -138,23 +140,21 @@
     <div class="screen-inner" style="align-items:center;justify-content:center;">
       <div class="join-card">
         <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="join-mascot">
-        <div class="join-title">🎮 Únete al juego</div>
-        <div class="join-sub">Ingresa el código que te dio tu profesor</div>
+        <div class="join-title" data-i18n="student.join.title"></div>
+        <div class="join-sub" data-i18n="student.join.sub"></div>
         <div class="form-group">
-          <label class="form-label">Código de sala</label>
+          <label class="form-label" data-i18n="student.code.label"></label>
           <input id="join-code" type="text" class="input input-code" maxlength="5" placeholder="XXXXX" autocomplete="off" autocorrect="off" autocapitalize="characters" spellcheck="false">
         </div>
         <div class="form-group">
-          <label class="form-label">Tu nombre</label>
-          <input id="join-name" type="text" class="input input-lg" placeholder="Ej: María García" maxlength="20">
+          <label class="form-label" data-i18n="student.name.label"></label>
+          <input id="join-name" type="text" class="input input-lg" data-i18n-placeholder="student.name.placeholder" maxlength="20">
         </div>
         <div class="form-group">
-          <label class="form-label">Elige tu avatar</label>
-          <div class="avatar-grid" id="avatar-grid">
-            <!-- generado por JS -->
-          </div>
+          <label class="form-label" data-i18n="student.avatar.label"></label>
+          <div class="avatar-grid" id="avatar-grid"></div>
         </div>
-        <button class="btn btn-primary btn-lg btn-block" id="join-btn" onclick="joinRoom()">Entrar 🚀</button>
+        <button class="btn btn-primary btn-lg btn-block" id="join-btn" onclick="joinRoom()" data-i18n="student.join.btn"></button>
         <p id="join-error" style="color:var(--color-danger);text-align:center;margin-top:0.75rem;font-weight:700;display:none;"></p>
       </div>
     </div>
@@ -167,7 +167,7 @@
         <h2 id="lobby-welcome">¡Bienvenido!</h2>
         <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="join-mascot">
         <span class="waiting-animation" id="lobby-avatar">🎮</span>
-        <p class="text-muted">Esperando a que el docente inicie el juego...</p>
+        <p class="text-muted" data-i18n="student.lobby.waiting"></p>
         <div class="mt-2" id="lobby-players-count" style="font-weight:700;color:var(--azul);"></div>
         <div class="player-grid mt-2" id="lobby-players-grid"></div>
       </div>
@@ -192,7 +192,7 @@
     <div class="screen-inner">
       <div class="round-info">
         <div class="rounds-progress" id="rounds-progress-student"></div>
-        <div id="round-label" style="font-weight:800;color:var(--azul);">Ronda 1</div>
+        <div id="round-label" style="font-weight:800;color:var(--azul);"></div>
       </div>
 
       <div class="timer-bar-wrap">
@@ -202,9 +202,9 @@
 
       <!-- Pregunta -->
       <div class="question-box" id="question-box" style="margin-top:0.5rem;">
-        <div class="question-type-badge" id="q-type-badge">Cargando...</div>
+        <div class="question-type-badge" id="q-type-badge"></div>
         <div id="q-topic" style="font-size:0.85rem;color:var(--gris-oscuro);margin-bottom:0.5rem;display:none;"></div>
-        <div class="question-text" id="q-text">Cargando pregunta...</div>
+        <div class="question-text" id="q-text"></div>
         <div id="q-scenario" style="font-size:0.9rem;color:var(--gris-oscuro);margin-top:0.75rem;line-height:1.6;display:none;"></div>
       </div>
 
@@ -220,7 +220,7 @@
             <div id="turing-text-B">–</div>
           </div>
         </div>
-        <p class="text-center text-muted" style="font-size:0.85rem;">¿Cuál fue escrito por la IA?</p>
+        <p class="text-center text-muted" style="font-size:0.85rem;" data-i18n="student.turing.which"></p>
       </div>
 
       <!-- Opciones múltiple -->
@@ -229,14 +229,14 @@
       <!-- Respuesta abierta (debate / completeprompt) -->
       <div id="open-block" style="display:none;">
         <p style="font-size:0.85rem;color:var(--gris-oscuro);margin-bottom:0.5rem;" id="open-hint"></p>
-        <textarea class="open-answer-box" id="open-answer" placeholder="Escribe tu respuesta aquí..."></textarea>
-        <button class="btn btn-primary btn-block mt-2" onclick="submitOpen()" id="open-submit-btn">Enviar respuesta ✓</button>
+        <textarea class="open-answer-box" id="open-answer" data-i18n-placeholder="student.open.placeholder"></textarea>
+        <button class="btn btn-primary btn-block mt-2" onclick="submitOpen()" id="open-submit-btn" data-i18n="student.open.submit"></button>
       </div>
 
       <!-- Respuesta ya enviada -->
       <div id="waiting-others" style="display:none;text-align:center;padding:2rem 0;">
         <div style="font-size:3rem;animation:bounce 1.4s infinite;">⏳</div>
-        <p class="text-muted mt-2">Tu respuesta fue enviada.<br>Esperando a los demás...</p>
+        <p class="text-muted mt-2" id="waiting-others-text"></p>
       </div>
 
     </div><!-- /screen-inner -->
@@ -245,7 +245,7 @@
   <!-- PANTALLA 4.5: COUNTDOWN ENTRE RONDAS -->
   <div id="screen-countdown" class="game-screen">
     <div class="screen-inner" style="align-items:center;justify-content:center;text-align:center;">
-      <div style="font-size:1.2rem;color:var(--text-muted);margin-bottom:1rem;">Próxima ronda en</div>
+      <div style="font-size:1.2rem;color:var(--text-muted);margin-bottom:1rem;" data-i18n="student.next.round"></div>
       <div id="countdown-number" style="font-size:6rem;font-weight:900;color:var(--azul);line-height:1;animation:streakPulse 0.5s ease;"></div>
     </div>
   </div>
@@ -255,20 +255,20 @@
     <div class="screen-inner">
       <div class="feedback-card mt-2" id="feedback-card">
         <span class="result-icon" id="result-icon">✅</span>
-        <div class="result-title" id="result-title">¡Correcto!</div>
+        <div class="result-title" id="result-title"></div>
         <div class="points-pop" id="result-points">+150 pts</div>
           <div id="streak-display"></div>
       </div>
       <div class="explanation-box" id="round-explanation" style="display:none;"></div>
       <div class="ai-response-box" id="ai-response-reveal" style="display:none;">
-        <div class="ai-label">🤖 Respuesta de la IA</div>
+        <div class="ai-label" data-i18n="student.ai.label"></div>
         <div id="ai-response-text"></div>
       </div>
       <div class="card mt-2">
-        <div class="section-title">Marcador actual</div>
+        <div class="section-title" data-i18n="student.scoreboard.title"></div>
         <ul class="scoreboard" id="result-scoreboard"></ul>
       </div>
-      <p class="text-center text-muted mt-2" style="font-size:0.85rem;" id="next-round-label">Esperando la siguiente ronda...</p>
+      <p class="text-center text-muted mt-2" style="font-size:0.85rem;" id="next-round-label" data-i18n="student.waiting.round"></p>
     </div>
   </div>
 
@@ -276,11 +276,11 @@
   <div id="screen-end" class="game-screen">
     <div class="screen-inner" style="align-items:center;justify-content:center;">
       <div class="end-card">
-        <h2 class="text-center mb-2">🎉 ¡Juego terminado!</h2>
+        <h2 class="text-center mb-2" data-i18n="student.end.title"></h2>
         <div class="podium" id="end-podium"></div>
         <div id="my-final-rank" style="text-align:center;padding:1rem 0;"></div>
         <ul class="scoreboard" id="end-scoreboard"></ul>
-        <button class="btn btn-primary btn-block mt-3" onclick="location.href='/jugar'">Jugar de nuevo 🔄</button>
+        <button class="btn btn-primary btn-block mt-3" onclick="location.href='/jugar'" data-i18n="student.play.again"></button>
       </div>
     </div>
   </div>
@@ -289,6 +289,17 @@
 
   <script src="/socket.io/socket.io.js"></script>
   <script>
+    // ─── i18n init ────────────────────────────────────────────────────────────
+    I18N.injectSwitcher(document.getElementById('lang-switcher-container'));
+    I18N.applyToDOM();
+    // Re-apply on lang change (patch setLang)
+    const _origSet = I18N.setLang.bind(I18N);
+    I18N.setLang = function(l) { _origSet(l); updateDynamicI18n(); };
+    function updateDynamicI18n() {
+      const waitEl = document.getElementById('waiting-others-text');
+      if (waitEl) waitEl.innerHTML = I18N.t('student.waiting.answer').replace('\n','<br>');
+    }
+    updateDynamicI18n();
     // ─── Estado ───────────────────────────────────────────────────────────────
     const socket = io({ reconnectionDelay: 1000 });
     let playerName = '';
@@ -325,9 +336,9 @@
       const errEl = document.getElementById('join-error');
       if (errEl) {
         errEl.style.display = 'block';
-        errEl.textContent = msg || 'No se pudo entrar a la sala.';
+        errEl.textContent = msg || I18N.t('student.err.noconn');
       }
-      toast(msg || 'No se pudo entrar a la sala.', 'error');
+      toast(msg || I18N.t('student.err.noconn'), 'error');
     }
 
     // ─── Init avatares ─────────────────────────────────────────────────────────
@@ -359,38 +370,37 @@
       const code = document.getElementById('join-code').value.trim().toUpperCase();
       const name = document.getElementById('join-name').value.trim();
       const errEl = document.getElementById('join-error');
-      if (!socket.connected) { showJoinError('No hay conexión con el servidor. Revisa la red e intenta de nuevo.'); return; }
-      if (!code || code.length < 4) { showJoinError('Ingresa el código de sala de al menos 4 caracteres.'); return; }
-      if (!name) { showJoinError('Escribe tu nombre antes de entrar.'); return; }
+      if (!socket.connected) { showJoinError(I18N.t('student.err.noconn')); return; }
+      if (!code || code.length < 4) { showJoinError(I18N.t('student.err.code')); return; }
+      if (!name) { showJoinError(I18N.t('student.err.name')); return; }
       errEl.style.display='none';
       playerName = name; roomCode = code;
       const btn = document.getElementById('join-btn');
       btn.disabled = true;
-      btn.textContent = 'Entrando...';
+      btn.textContent = I18N.t('student.joining');
       socket.emit('player:join', { code, name, avatar: playerAvatar });
       sessionStorage.setItem('rejoin', JSON.stringify({ code, name, avatar: playerAvatar }));
-      // Desbloquear audio en contexto de interacción del usuario
       [sfxCorrect, sfxIncorrect, sfxCountdown].forEach(a => { a.play().catch(()=>{}); a.pause(); a.currentTime = 0; });
       setTimeout(() => {
         if (document.getElementById('screen-join').classList.contains('active')) {
           btn.disabled = false;
-          btn.textContent = 'Entrar 🚀';
+          btn.textContent = I18N.t('student.join.btn');
         }
       }, 5000);
     }
 
-    socket.on('player:joined', ({ code, reconnected, score, streak: s }) => {
+    socket.on('player:joined', ({ code, reconnected, score }) => {
       const btn = document.getElementById('join-btn');
       btn.disabled = false;
-      btn.textContent = 'Entrar 🚀';
+      btn.textContent = I18N.t('student.join.btn');
       document.getElementById('header-room-code').style.display = 'block';
       document.getElementById('header-room-code').textContent = code;
-      document.getElementById('lobby-welcome').textContent = `¡Hola, ${playerName}!`;
+      document.getElementById('lobby-welcome').textContent = `${playerName}!`;
       document.getElementById('lobby-avatar').textContent = playerAvatar;
       if (reconnected) {
         myScore = score || 0;
         showScreen('screen-round-result');
-        toast('Reconectado a la partida ✓', 'success');
+        toast(I18N.t('student.err.reconnected'), 'success');
       } else {
         showScreen('screen-lobby');
       }
@@ -399,7 +409,9 @@
     socket.on('room:state', ({ players }) => {
       const students = players.filter(p => !p.isTeacher);
       const el = document.getElementById('lobby-players-count');
-      if (el) el.textContent = `${students.length} jugador${students.length!==1?'es':''} conectado${students.length!==1?'s':''}`;
+      const n = students.length;
+      const s = n !== 1 ? 's' : '';
+      if (el) el.textContent = I18N.t('student.lobby.players', { n, s });
       const grid = document.getElementById('lobby-players-grid');
       if (grid) grid.innerHTML = students.map(p =>
         `<div class="player-card${p.name===playerName?' joined':''}">
@@ -417,7 +429,7 @@
       document.getElementById('module-intro-icon').textContent = moduleIcons[moduleName]||'🎮';
       document.getElementById('module-intro-name').textContent = displayName;
       document.getElementById('module-intro-desc').textContent = description;
-      document.getElementById('module-intro-badge').textContent = '¡Listo para jugar!';
+      document.getElementById('module-intro-badge').textContent = I18N.t('student.badge.ready');
       document.getElementById('module-banner-name').textContent = displayName;
       showScreen('screen-module-intro');
     });
@@ -431,7 +443,7 @@
       countdownDone = false;
       pendingQuestion = null;
       updateRoundsProgress(round, mr);
-      document.getElementById('round-label').textContent = `Ronda ${round} / ${mr}`;
+      document.getElementById('round-label').textContent = I18N.t('student.round.label', { round, max: mr });
 
       showScreen('screen-countdown');
       sfxCountdown.currentTime = 0;
@@ -483,8 +495,16 @@
       document.getElementById('q-topic').style.display = 'none';
       document.getElementById('q-scenario').style.display = 'none';
 
-      const badges = { trivia:'🧠 Trivia', turing:'🤖 Turing', ethics:'⚖️ Ética', fakenews:'🕵️ ¿Real o IA?', completeprompt:'✍️ Prompt', debate:'🗣️ Debate', hallucination:'🧐 Alucinaciones' };
-      document.getElementById('q-type-badge').textContent = badges[q.type]||'Pregunta';
+      const badges = {
+        trivia: I18N.t('student.q.badge.trivia'),
+        turing: I18N.t('student.q.badge.turing'),
+        ethics: I18N.t('student.q.badge.ethics'),
+        fakenews: I18N.t('student.q.badge.fakenews'),
+        completeprompt: I18N.t('student.q.badge.completeprompt'),
+        debate: I18N.t('student.q.badge.debate'),
+        hallucination: I18N.t('student.q.badge.hallucination')
+      };
+      document.getElementById('q-type-badge').textContent = badges[q.type] || I18N.t('student.q.loading');
 
       if (q.type === 'turing') {
         document.getElementById('q-text').textContent = `Tema: "${q.topic}"`;
@@ -496,12 +516,12 @@
         if (q.type === 'debate') {
           document.getElementById('q-text').textContent = q.topic;
           const sc = document.getElementById('q-scenario');
-          sc.textContent = `Tu posición: "${q.yourPosition}". La IA defenderá: "${q.aiPosition}"`;
+          sc.textContent = I18N.t('student.debate.position', { yours: q.yourPosition, ai: q.aiPosition });
           sc.style.display = 'block';
-          document.getElementById('open-hint').textContent = q.hint || 'Escribe tus argumentos de forma clara y breve';
+          document.getElementById('open-hint').textContent = q.hint || I18N.t('student.open.hint.debate');
         } else {
           document.getElementById('q-text').textContent = q.prompt;
-          document.getElementById('open-hint').textContent = q.hint || '¿Cómo crees que responderá la IA?';
+          document.getElementById('open-hint').textContent = q.hint || I18N.t('student.open.hint.prompt');
         }
         document.getElementById('open-answer').value = '';
         document.getElementById('open-submit-btn').disabled = false;
@@ -530,6 +550,11 @@
       grid.style.display = 'grid';
     }
 
+    function showWaitingOthers() {
+      const el = document.getElementById('waiting-others-text');
+      if (el) el.innerHTML = I18N.t('student.waiting.answer').replace('\n','<br>');
+      document.getElementById('waiting-others').style.display = 'block';
+    }
     // ─── Respuestas ────────────────────────────────────────────────────────────
     function answerOption(idx) {
       if (hasAnswered) return;
@@ -537,7 +562,7 @@
       stopTimer();
       document.querySelectorAll('.option-btn').forEach(b => { b.disabled = true; b.classList.remove('selected'); });
       document.querySelectorAll('.option-btn')[idx].classList.add('selected');
-      document.getElementById('waiting-others').style.display = 'block';
+      showWaitingOthers();
       socket.emit('player:answer', { code: roomCode, answer: String(idx), timeLeft });
     }
 
@@ -549,7 +574,7 @@
       document.getElementById('turing-B').onclick = null;
       document.getElementById('turing-' + choice).classList.add('selected');
       socket.emit('player:answer', { code: roomCode, answer: choice, timeLeft });
-      document.getElementById('waiting-others').style.display = 'block';
+      showWaitingOthers();
       document.getElementById('turing-block').style.display = 'block';
     }
 
@@ -561,7 +586,7 @@
       document.getElementById('open-submit-btn').disabled = true;
       socket.emit('player:answer', { code: roomCode, answer: text, timeLeft });
       document.getElementById('open-block').style.display = 'none';
-      document.getElementById('waiting-others').style.display = 'block';
+      showWaitingOthers();
     }
 
     function resetTuringCards() {
@@ -585,7 +610,7 @@
           if (!hasAnswered) {
             hasAnswered = true;
             socket.emit('player:answer', { code: roomCode, answer: '-1', timeLeft: 0 });
-            document.getElementById('waiting-others').style.display = 'block';
+            showWaitingOthers();
           }
         }
       }, 1000);
@@ -640,35 +665,18 @@
       const streak = mine ? mine.streak : 0;
       const streakBonus = mine ? mine.streakBonus : 0;
       document.getElementById('result-icon').textContent = isOpenEnded ? '✍️' : (correct ? '✅' : '❌');
-      document.getElementById('result-title').textContent = isOpenEnded ? 'Respuesta enviada' : (correct ? '¡Correcto!' : 'Incorrecto');
+      document.getElementById('result-title').textContent = isOpenEnded ? I18N.t('student.result.sent') : (correct ? I18N.t('student.result.correct') : I18N.t('student.result.wrong'));
       document.getElementById('result-title').className = 'result-title' + (isOpenEnded ? '' : correct ? ' correct' : ' wrong');
-      document.getElementById('result-points').textContent = `+${pts} pts`;
+      document.getElementById('result-points').textContent = I18N.t('student.result.pts', { pts });
       const streakEl = document.getElementById('streak-display');
 
       if (streak >= 5) {
-        streakEl.innerHTML = `
-          <div class="streak-box streak-super">
-            🚀 ¡Racha imparable! x${streak}<br>
-            +${streakBonus} bonus
-          </div>
-        `;
-      }
-      else if (streak >= 3) {
-        streakEl.innerHTML = `
-          <div class="streak-box">
-            🔥 Racha de ${streak}<br>
-            +${streakBonus} bonus
-          </div>
-        `;
-      }
-      else if (streak >= 2) {
-        streakEl.innerHTML = `
-          <div class="streak-box">
-            ⚡ Vas en racha x${streak}
-          </div>
-        `;
-      }
-      else {
+        streakEl.innerHTML = `<div class="streak-box streak-super">${I18N.t('student.streak.unstoppable', { n: streak, bonus: streakBonus }).replace('\n','<br>')}</div>`;
+      } else if (streak >= 3) {
+        streakEl.innerHTML = `<div class="streak-box">${I18N.t('student.streak.fire', { n: streak, bonus: streakBonus }).replace('\n','<br>')}</div>`;
+      } else if (streak >= 2) {
+        streakEl.innerHTML = `<div class="streak-box">${I18N.t('student.streak.lightning', { n: streak })}</div>`;
+      } else {
         streakEl.innerHTML = '';
       }
 
@@ -693,7 +701,7 @@
         <li class="score-row ${p.id===socket.id?'card-accent':''}">
           <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${medals[i]||i+1}</span>
           <span class="score-avatar">${p.avatar}</span>
-          <span class="score-name">${p.name}${p.id===socket.id?' (tú)':''}</span>
+          <span class="score-name">${p.name}${p.id===socket.id?' '+I18N.t('student.scoreboard.you'):''}</span>
           <span class="score-pts">${p.score} pts</span>
         </li>`).join('');
 
@@ -710,10 +718,10 @@
       const myRank = scoreboard.findIndex(p => p.id === socket.id) + 1;
       const myData = scoreboard.find(p => p.id === socket.id);
 
-      const rankMsg = myRank === 1 ? '🏆 ¡CAMPEÓN!' : myRank === 2 ? '🥈 ¡Segundo lugar!' : myRank === 3 ? '🥉 ¡Tercer lugar!' : `Puesto #${myRank}`;
+      const rankMsg = myRank === 1 ? I18N.t('student.end.champion') : myRank === 2 ? I18N.t('student.end.second') : myRank === 3 ? I18N.t('student.end.third') : I18N.t('student.end.rank', { n: myRank });
       document.getElementById('my-final-rank').innerHTML =
         `<div style="font-family:var(--font-main);font-size:1.5rem;font-weight:900;color:var(--azul);">${rankMsg}</div>
-         <div class="score-my">${myData ? myData.score : 0} puntos</div>`;
+         <div class="score-my">${I18N.t('student.end.points', { n: myData ? myData.score : 0 })}</div>`;
 
       // Podio
       const top = scoreboard.slice(0,3);
@@ -732,7 +740,7 @@
         <li class="score-row">
           <span class="score-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">#${i+1}</span>
           <span class="score-avatar">${p.avatar}</span>
-          <span class="score-name">${p.name}${p.id===socket.id?' (tú)':''}</span>
+          <span class="score-name">${p.name}${p.id===socket.id?' '+I18N.t('student.scoreboard.you'):''}</span>
           <span class="score-pts">${p.score} pts</span>
         </li>`).join('');
 
@@ -754,35 +762,28 @@
     socket.on('error', ({ msg }) => {
       showJoinError(msg);
       const btn = document.getElementById('join-btn');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Entrar 🚀';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = I18N.t('student.join.btn'); }
     });
     socket.on('app:error', ({ msg }) => {
       showJoinError(msg);
       const btn = document.getElementById('join-btn');
-      if (btn) {
-        btn.disabled = false;
-        btn.textContent = 'Entrar 🚀';
-      }
+      if (btn) { btn.disabled = false; btn.textContent = I18N.t('student.join.btn'); }
     });
     socket.on('room:closed', ({ reason }) => {
-      showJoinError(reason || 'Sala cerrada.');
+      showJoinError(reason || I18N.t('student.room.closed'));
       roomCode = '';
       currentRound = 0;
       hasAnswered = false;
       clearInterval(timerInterval);
       showScreen('screen-join');
     });
-    socket.on('connect_error', () => showJoinError('No se pudo conectar con el servidor. Intenta recargar la página.'));
-    socket.on('disconnect', () => toast('Desconectado. Reconectando...', 'error'));
+    socket.on('connect_error', () => showJoinError(I18N.t('student.err.noserver')));
+    socket.on('disconnect', () => toast(I18N.t('student.err.disconnect'), 'error'));
     socket.on('connect', () => {
       if (roomCode) {
-        toast('Reconectado ✓', 'success');
+        toast(I18N.t('student.err.reconnecting'), 'success');
         socket.emit('player:join', { code: roomCode, name: playerName, avatar: playerAvatar });
       } else {
-        // Intento de rejoin desde sessionStorage (recarga de página)
         const saved = sessionStorage.getItem('rejoin');
         if (saved) {
           try {

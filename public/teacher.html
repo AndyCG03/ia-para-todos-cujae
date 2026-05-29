@@ -35,11 +35,12 @@
   <header class="header">
     <a href="/" aria-label="Ir al inicio"><img src="/assets/cujae.png" alt="CUJAE" class="header-logo"></a>
     <div>
-      <div class="header-title">Panel Docente</div>
-      <div class="header-subtitle">Universidad Tecnológica de La Habana</div>
+      <div class="header-title" data-i18n="teacher.title"></div>
+      <div class="header-subtitle" data-i18n="header.subtitle"></div>
     </div>
     <div class="header-spacer"></div>
-    <a href="/" class="btn btn-ghost btn-sm">← Inicio</a>
+    <div id="lang-switcher-container"></div>
+    <a href="/" class="btn btn-ghost btn-sm" data-i18n="nav.back"></a>
   </header>
 
   <div class="container-wide" style="padding-top:2rem;">
@@ -49,18 +50,21 @@
       <div style="max-width:440px; margin:0 auto;">
         <div class="card card-lg">
           <img src="/assets/mascota.png" alt="Mascota de IA Para Todos" class="create-mascot">
-          <h2 style="margin-bottom:0.25rem;">Crear sesión de juego</h2>
-          <p class="text-muted mb-3">Se generará un código único para que los estudiantes se unan.</p>
+          <h2 style="margin-bottom:0.25rem;" data-i18n="teacher.create.heading"></h2>
+          <p class="text-muted mb-3" data-i18n="teacher.create.sub"></p>
           <div class="form-group">
-            <label class="form-label">Tu nombre</label>
-            <input type="text" id="teacher-name" class="input" placeholder="Prof. García" value="Docente">
+            <label class="form-label" data-i18n="teacher.name.label"></label>
+            <input type="text" id="teacher-name" class="input" data-i18n-placeholder="teacher.name.placeholder" value="Docente">
           </div>
           <div class="form-group">
-            <label class="form-label">API Key de OpenRouter <span style="font-weight:400;color:var(--gris-oscuro)">(opcional)</span></label>
+            <label class="form-label">
+              <span data-i18n="teacher.apikey.label"></span>
+              <span style="font-weight:400;color:var(--gris-oscuro)" data-i18n="teacher.apikey.optional"></span>
+            </label>
             <input type="password" id="api-key-input" class="input" placeholder="sk-or-v1-...">
-            <p class="api-key-note">Solo necesaria para módulos con IA (Completa el Prompt y Debate). Los 4 módulos restantes funcionan sin ella. La clave nunca se envía a los estudiantes.</p>
+            <p class="api-key-note" data-i18n="teacher.apikey.note"></p>
           </div>
-          <button class="btn btn-primary btn-lg btn-block" id="create-room-btn" onclick="createRoom()">🚀 Crear sala</button>
+          <button class="btn btn-primary btn-lg btn-block" id="create-room-btn" onclick="createRoom()" data-i18n="teacher.create.btn"></button>
         </div>
       </div>
     </div>
@@ -72,23 +76,27 @@
         <!-- Panel izquierdo -->
         <div>
           <div class="card mb-2">
-            <div class="section-title">Código de sala</div>
+            <div class="section-title" data-i18n="teacher.room.code"></div>
             <div class="room-code-display" id="room-code-display">─────</div>
-            <p class="text-center text-muted" style="font-size:0.85rem;">Los estudiantes van a <strong>ia-para-todos.cujae.edu.cu/jugar</strong> e ingresan este código</p>
+            <p class="text-center text-muted" style="font-size:0.85rem;" id="room-url-text"></p>
           </div>
 
           <div class="card mb-2">
             <div class="flex items-center justify-between mb-2">
-              <div class="section-title" style="margin:0">Jugadores conectados <span class="player-count-badge" id="player-count">0</span></div>
-              <span id="status-indicator"><span class="status-dot online"></span>En línea</span>
+              <div class="section-title" style="margin:0">
+                <span data-i18n="teacher.players.title"></span>
+                <span class="player-count-badge" id="player-count">0</span>
+              </div>
+              <span id="status-indicator">
+                <span class="status-dot online"></span>
+                <span data-i18n="teacher.status.online"></span>
+              </span>
             </div>
-            <div class="player-grid" id="player-grid">
-              <div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;">Esperando jugadores...</div>
-            </div>
+            <div class="player-grid" id="player-grid"></div>
           </div>
 
           <div class="card" id="scoreboard-panel" style="display:none;">
-            <div class="section-title">Marcador</div>
+            <div class="section-title" data-i18n="teacher.scoreboard"></div>
             <ul class="scoreboard" id="live-scoreboard"></ul>
           </div>
         </div>
@@ -97,49 +105,47 @@
         <div>
           <!-- Config módulo -->
           <div class="card mb-2" id="module-config-panel">
-            <h3 class="mb-2">Selecciona un módulo</h3>
-            <div class="modules-grid" id="modules-grid">
-              <!-- generado por JS -->
-            </div>
+            <h3 class="mb-2" data-i18n="teacher.module.select"></h3>
+            <div class="modules-grid" id="modules-grid"></div>
             <hr>
             <div class="flex items-center gap-2 flex-wrap mt-2">
               <div>
-                <label class="form-label">Número de rondas</label>
+                <label class="form-label" data-i18n="teacher.rounds.label"></label>
                 <input type="number" id="rounds-input" class="input rounds-input" value="5" min="2" max="20">
               </div>
               <div style="flex:1"></div>
-              <button class="btn btn-primary btn-lg" id="start-btn" onclick="startGame()" disabled>▶ Iniciar juego</button>
+              <button class="btn btn-primary btn-lg" id="start-btn" onclick="startGame()" disabled data-i18n="teacher.start.btn"></button>
             </div>
           </div>
 
           <!-- Control de juego -->
           <div class="card mb-2 hidden" id="game-control-panel">
             <div class="flex items-center justify-between mb-3">
-              <h3>Control de sesión</h3>
+              <h3 data-i18n="teacher.control.title"></h3>
               <div class="rounds-progress" id="rounds-progress-teacher"></div>
             </div>
 
-            <div id="current-question-display" class="question-preview">Esperando ronda...</div>
+            <div id="current-question-display" class="question-preview"></div>
 
             <div class="answer-progress mt-2">
-              <span id="answer-count-text" style="white-space:nowrap;">0 / 0 respuestas</span>
+              <span id="answer-count-text" style="white-space:nowrap;"></span>
               <div class="answer-bar"><div class="answer-fill" id="answer-fill" style="width:0%"></div></div>
             </div>
 
             <div class="control-row mt-2">
-              <button class="btn btn-primary" onclick="nextRound()">⏭ Siguiente ronda</button>
-              <button class="btn btn-danger btn-sm" onclick="endGame()">⏹ Terminar juego</button>
+              <button class="btn btn-primary" onclick="nextRound()" data-i18n="teacher.next"></button>
+              <button class="btn btn-danger btn-sm" onclick="endGame()" data-i18n="teacher.end"></button>
             </div>
           </div>
 
           <!-- Resultado final -->
           <div class="card hidden" id="final-panel">
-            <h2 class="text-center mb-3">🏆 Juego terminado</h2>
+            <h2 class="text-center mb-3" data-i18n="teacher.game.over"></h2>
             <div id="podium-display" class="podium"></div>
             <ul class="scoreboard mt-3" id="final-scoreboard"></ul>
             <div class="control-row mt-3">
-              <button class="btn btn-secondary" onclick="exportResults()">📥 Exportar resultados</button>
-              <button class="btn btn-primary" onclick="newGame()">🔄 Nueva partida</button>
+              <button class="btn btn-secondary" onclick="exportResults()" data-i18n="teacher.export"></button>
+              <button class="btn btn-primary" onclick="newGame()" data-i18n="teacher.new.game"></button>
             </div>
           </div>
         </div>
@@ -151,7 +157,31 @@
   <div class="toast-container" id="toasts"></div>
 
   <script src="/socket.io/socket.io.js"></script>
+  <script src="/js/i18n.js"></script>
   <script>
+    I18N.injectSwitcher(document.getElementById('lang-switcher-container'));
+    I18N.applyToDOM();
+
+    // Patch applyToDOM to also re-render dynamic content
+    const _origApply = I18N.applyToDOM.bind(I18N);
+    I18N.applyToDOM = function() {
+      _origApply();
+      renderModules();
+      updateRoomUrlText();
+      updateWaitingText();
+    };
+
+    function updateRoomUrlText() {
+      const el = document.getElementById('room-url-text');
+      if (el) el.innerHTML = I18N.t('teacher.room.url');
+    }
+    function updateWaitingText() {
+      const grid = document.getElementById('player-grid');
+      if (grid && grid.querySelector('[data-waiting]')) {
+        grid.innerHTML = `<div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;" data-waiting>${I18N.t('teacher.players.waiting')}</div>`;
+      }
+    }
+
     const socket = io({ reconnectionDelay: 1000, reconnectionAttempts: 10 });
     let roomCode = null;
     let currentModule = null;
@@ -161,13 +191,13 @@
     let connectedStudents = 0;
 
     const moduleMeta = {
-      trivia:         { icon:'🧠', name:'Trivia IA',         offline:true },
-      turing:         { icon:'🤖', name:'Desafío Turing',    offline:true },
-      ethics:         { icon:'⚖️', name:'Dilemas Éticos',    offline:true },
-      fakenews:       { icon:'🕵️', name:'¿Real o IA?',       offline:true },
-      hallucination:  { icon:'🧐', name:'Caza de Alucinaciones', offline:true },
-      completeprompt: { icon:'✍️', name:'Completa el Prompt', offline:false },
-      debate:         { icon:'🗣️', name:'Debate con la IA',  offline:false }
+      trivia:         { icon:'🧠', key:'module.trivia',         offline:true },
+      turing:         { icon:'🤖', key:'module.turing',         offline:true },
+      ethics:         { icon:'⚖️', key:'module.ethics',         offline:true },
+      fakenews:       { icon:'🕵️', key:'module.fakenews',       offline:true },
+      hallucination:  { icon:'🧐', key:'module.hallucination',  offline:true },
+      completeprompt: { icon:'✍️', key:'module.completeprompt', offline:false },
+      debate:         { icon:'🗣️', key:'module.debate',         offline:false }
     };
 
     function show(id)  { document.getElementById(id).classList.remove('hidden'); }
@@ -179,21 +209,22 @@
       document.getElementById('toasts').appendChild(t);
       setTimeout(() => t.remove(), 3500);
     }
-    function showAppError(msg) { toast(msg || 'Ocurrió un error inesperado.', 'error'); }
-    function showNotice(msg) { toast(msg || 'Aviso del sistema.', 'success'); }
+    function showAppError(msg) { toast(msg || I18N.t('teacher.err.generic'), 'error'); }
+    function showNotice(msg) { toast(msg, 'success'); }
 
-    // Render módulos
     function renderModules() {
       const grid = document.getElementById('modules-grid');
+      if (!grid) return;
+      const selected = currentModule;
       grid.innerHTML = '';
       Object.entries(moduleMeta).forEach(([key, m]) => {
         const div = document.createElement('div');
-        div.className = 'module-card' + (m.offline ? '' : ' needs-llm');
+        div.className = 'module-card' + (m.offline ? '' : ' needs-llm') + (key === selected ? ' selected' : '');
         div.dataset.key = key;
         div.innerHTML = `
           <span class="module-icon">${m.icon}</span>
-          <div class="module-name">${m.name}</div>
-          <span class="module-tag">${m.offline ? '✅ Sin internet' : '🌐 Requiere API'}</span>`;
+          <div class="module-name">${I18N.t(m.key)}</div>
+          <span class="module-tag">${m.offline ? I18N.t('teacher.module.offline') : I18N.t('teacher.module.llm')}</span>`;
         div.onclick = () => selectModule(key, div);
         grid.appendChild(div);
       });
@@ -207,19 +238,16 @@
     }
 
     function createRoom() {
-      if (!socket.connected) {
-        showAppError('No hay conexión con el servidor. Revisa la red e intenta de nuevo.');
-        return;
-      }
+      if (!socket.connected) { showAppError(I18N.t('teacher.err.noconn')); return; }
       const name = document.getElementById('teacher-name').value || 'Docente';
       const btn = document.getElementById('create-room-btn');
       btn.disabled = true;
-      btn.textContent = 'Creando sala...';
+      btn.textContent = I18N.t('teacher.creating');
       socket.emit('teacher:create', { name });
       setTimeout(() => {
         if (!roomCode) {
           btn.disabled = false;
-          btn.textContent = '🚀 Crear sala';
+          btn.textContent = I18N.t('teacher.create.btn');
         }
       }, 5000);
     }
@@ -228,24 +256,27 @@
       roomCode = code;
       const btn = document.getElementById('create-room-btn');
       btn.disabled = false;
-      btn.textContent = '🚀 Crear sala';
+      btn.textContent = I18N.t('teacher.create.btn');
       document.getElementById('room-code-display').textContent = code;
       hide('step-create');
       show('step-room');
       renderModules();
+      updateRoomUrlText();
+      const grid = document.getElementById('player-grid');
+      grid.innerHTML = `<div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;" data-waiting>${I18N.t('teacher.players.waiting')}</div>`;
       const apiKey = document.getElementById('api-key-input').value.trim();
       if (apiKey) socket.emit('teacher:setApiKey', { code, apiKey });
     });
 
-    socket.on('teacher:apiKeySet', () => toast('API Key configurada ✓', 'success'));
+    socket.on('teacher:apiKeySet', () => toast(I18N.t('teacher.toast.apikey'), 'success'));
 
-    socket.on('room:state', ({ players, round, maxRounds: mr }) => {
+    socket.on('room:state', ({ players }) => {
       const students = players.filter(p => !p.isTeacher);
       connectedStudents = students.length;
       document.getElementById('player-count').textContent = students.length;
       const grid = document.getElementById('player-grid');
       if (students.length === 0) {
-        grid.innerHTML = '<div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;">Esperando jugadores...</div>';
+        grid.innerHTML = `<div style="color:var(--gris-oscuro);font-size:0.85rem;grid-column:1/-1;" data-waiting>${I18N.t('teacher.players.waiting')}</div>`;
       } else {
         grid.innerHTML = students.map(p => `
           <div class="player-card joined">
@@ -256,12 +287,9 @@
     });
 
     function startGame() {
-      if (!roomCode) { showAppError('Primero debes crear una sala.'); return; }
-      if (!currentModule) { showAppError('Selecciona un módulo antes de iniciar.'); return; }
-      if (connectedStudents === 0) {
-        showAppError('Aún no hay estudiantes conectados. Comparte el código de sala antes de iniciar.');
-        return;
-      }
+      if (!roomCode) { showAppError(I18N.t('teacher.err.noroom')); return; }
+      if (!currentModule) { showAppError(I18N.t('teacher.err.nomodule')); return; }
+      if (connectedStudents === 0) { showAppError(I18N.t('teacher.err.nostudents')); return; }
       const rounds = parseInt(document.getElementById('rounds-input').value) || 5;
       socket.emit('teacher:startModule', { code: roomCode, moduleName: currentModule, rounds });
     }
@@ -269,26 +297,27 @@
     socket.on('game:moduleStart', ({ displayName }) => {
       hide('module-config-panel');
       show('game-control-panel');
-      toast(`Módulo iniciado: ${displayName}`, 'success');
+      document.getElementById('current-question-display').textContent = I18N.t('teacher.waiting.round');
+      toast(I18N.t('teacher.toast.module', { name: displayName }), 'success');
     });
 
     socket.on('game:roundStart', ({ round, maxRounds: mr }) => {
       currentRound = round; maxRounds = mr;
       document.getElementById('answer-fill').style.width = '0%';
-      document.getElementById('answer-count-text').textContent = `0 / ? respuestas`;
+      document.getElementById('answer-count-text').textContent = I18N.t('teacher.answers', { answered: 0, total: '?' });
       updateRoundsProgress(round, mr);
     });
 
     socket.on('game:question', ({ question }) => {
-      const box = document.getElementById('current-question-display');
-      const txt = question.title || question.prompt || question.topic || question.text || 'Ronda activa';
-      box.textContent = `Ronda ${currentRound}: ${txt}`;
+      const txt = question.title || question.prompt || question.topic || question.text || I18N.t('teacher.waiting.round');
+      document.getElementById('current-question-display').textContent =
+        I18N.t('teacher.round.label', { round: currentRound, text: txt });
     });
 
     socket.on('game:answerCount', ({ answered, total }) => {
       const pct = total > 0 ? (answered/total*100) : 0;
       document.getElementById('answer-fill').style.width = pct+'%';
-      document.getElementById('answer-count-text').textContent = `${answered} / ${total} respuestas`;
+      document.getElementById('answer-count-text').textContent = I18N.t('teacher.answers', { answered, total });
     });
 
     socket.on('game:roundResult', ({ scoreboard }) => {
@@ -305,7 +334,9 @@
     });
 
     function nextRound() { socket.emit('teacher:nextRound', { code: roomCode }); }
-    function endGame()   { if(confirm('¿Terminar el juego ahora?')) socket.emit('teacher:endGame', { code: roomCode }); }
+    function endGame()   {
+      if (confirm(I18N.t('teacher.end.confirm'))) socket.emit('teacher:endGame', { code: roomCode });
+    }
 
     function updateRoundsProgress(round, max) {
       const el = document.getElementById('rounds-progress-teacher');
@@ -330,7 +361,7 @@
 
     function renderPodium(sb) {
       const top = sb.slice(0,3);
-      const order = [1,0,2]; // 2nd, 1st, 3rd
+      const order = [1,0,2];
       const podium = document.getElementById('podium-display');
       podium.innerHTML = order.map(i => {
         const p = top[i];
@@ -358,7 +389,7 @@
       if (!finalResults) return;
       const data = {
         sala: roomCode,
-        fecha: new Date().toLocaleString('es-CU'),
+        fecha: new Date().toLocaleString(I18N.getLang() === 'en' ? 'en-US' : 'es-CU'),
         modulo: currentModule,
         resultados: finalResults
       };
@@ -375,11 +406,11 @@
     socket.on('app:notice', ({ msg }) => showNotice(msg));
     socket.on('error', ({ msg }) => showAppError(msg));
     socket.on('connect', () => {
-      toast('Conectado al servidor', 'success');
+      toast(I18N.t('teacher.toast.connected'), 'success');
       if (roomCode) socket.emit('teacher:reclaim', { code: roomCode });
     });
-    socket.on('connect_error', () => showAppError('No se pudo conectar con el servidor. Intenta recargar la página.'));
-    socket.on('disconnect', () => showAppError('Desconectado del servidor. Las acciones se reanudarán al reconectar.'));
+    socket.on('connect_error', () => showAppError(I18N.t('teacher.err.noserver')));
+    socket.on('disconnect', () => showAppError(I18N.t('teacher.err.disconnect')));
   </script>
 </body>
 </html>

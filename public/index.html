@@ -312,27 +312,28 @@
     <a href="/" aria-label="Ir al inicio"><img src="/assets/cujae.png" alt="CUJAE" class="header-logo"></a>
     <div>
       <div class="header-title">IA Para Todos</div>
-      <div class="header-subtitle">Universidad Tecnológica de La Habana</div>
+      <div class="header-subtitle" data-i18n="header.subtitle"></div>
     </div>
-    <button class="btn btn-ghost btn-sm nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="home-nav">Secciones</button>
-    <nav class="home-nav" aria-label="Secciones de la pagina">
-      <a href="#inicio">Inicio</a>
-      <a href="#juegos">Juegos</a>
-      <a href="#funciona">Cómo funciona</a>
-      <a href="#salas">Salas</a>
+    <button class="btn btn-ghost btn-sm nav-toggle" id="nav-toggle" aria-expanded="false" aria-controls="home-nav" data-i18n="nav.sections"></button>
+    <nav class="home-nav" id="home-nav" aria-label="Secciones de la pagina">
+      <a href="#inicio" data-i18n="nav.home"></a>
+      <a href="#juegos" data-i18n="nav.games"></a>
+      <a href="#funciona" data-i18n="nav.how"></a>
+      <a href="#salas" data-i18n="nav.rooms"></a>
     </nav>
     <div class="header-spacer"></div>
-    <span class="header-badge">Juego educativo</span>
+    <div id="lang-switcher-container"></div>
+    <span class="header-badge" data-i18n="header.badge"></span>
   </header>
 
   <section class="hero fade-section" id="inicio">
     <div class="hero-inner">
       <div>
-        <h1 class="hero-title">Aprende <span>Inteligencia Artificial</span> jugando</h1>
-        <p class="hero-subtitle">Una experiencia multijugador para clases, talleres y eventos de la Universidad Tecnológica de La Habana.</p>
+        <h1 class="hero-title" data-i18n="hero.title" data-i18n-html="true"></h1>
+        <p class="hero-subtitle" data-i18n="hero.subtitle"></p>
         <div class="hero-actions">
-          <a href="/docente" class="btn btn-primary btn-lg">Crear sala</a>
-          <a href="/jugar" class="btn btn-ghost btn-lg">Unirse al juego</a>
+          <a href="/docente" class="btn btn-primary btn-lg" data-i18n="hero.create"></a>
+          <a href="/jugar" class="btn btn-ghost btn-lg" data-i18n="hero.join"></a>
         </div>
       </div>
       <div class="hero-mascot-wrap">
@@ -343,44 +344,44 @@
 
   <section class="section fade-section" id="juegos">
     <div class="section-inner">
-      <div class="section-kicker">Modos de juego</div>
-      <h2>Seis actividades para pensar, debatir y practicar IA</h2>
-      <p class="section-lead">Los juegos estan organizados en grupos de tres para que el docente pueda seleccionar rapido la dinamica adecuada.</p>
+      <div class="section-kicker" data-i18n="games.kicker"></div>
+      <h2 data-i18n="games.title"></h2>
+      <p class="section-lead" data-i18n="games.lead"></p>
       <div class="games-grid">
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">🧠</span><span class="game-tag">Sin internet</span></div>
-          <h3>Trivia IA</h3>
-          <p>Preguntas de seleccion multiple sobre historia, conceptos y aplicaciones de inteligencia artificial.</p>
+          <div class="game-top"><span class="game-icon">🧠</span><span class="game-tag" data-i18n="games.offline"></span></div>
+          <h3 data-i18n="games.trivia.name"></h3>
+          <p data-i18n="games.trivia.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">🤖</span><span class="game-tag">Sin internet</span></div>
-          <h3>Desafio Turing</h3>
-          <p>Los estudiantes comparan dos textos y deciden cual fue generado por IA.</p>
+          <div class="game-top"><span class="game-icon">🤖</span><span class="game-tag" data-i18n="games.offline"></span></div>
+          <h3 data-i18n="games.turing.name"></h3>
+          <p data-i18n="games.turing.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">⚖️</span><span class="game-tag">Sin internet</span></div>
-          <h3>Dilemas Eticos</h3>
-          <p>Casos reales para discutir sesgos, privacidad, automatizacion y responsabilidad.</p>
+          <div class="game-top"><span class="game-icon">⚖️</span><span class="game-tag" data-i18n="games.offline"></span></div>
+          <h3 data-i18n="games.ethics.name"></h3>
+          <p data-i18n="games.ethics.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">🕵️</span><span class="game-tag">Sin internet</span></div>
-          <h3>Real o IA</h3>
-          <p>Ejercita pensamiento critico detectando contenido humano y contenido generado.</p>
+          <div class="game-top"><span class="game-icon">🕵️</span><span class="game-tag" data-i18n="games.offline"></span></div>
+          <h3 data-i18n="games.fakenews.name"></h3>
+          <p data-i18n="games.fakenews.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">🧐</span><span class="game-tag">Sin internet</span></div>
-          <h3>Caza de Alucinaciones</h3>
-          <p>Identifica afirmaciones falsas que la IA inventa dentro de textos que parecen correctos.</p>
+          <div class="game-top"><span class="game-icon">🧐</span><span class="game-tag" data-i18n="games.offline"></span></div>
+          <h3 data-i18n="games.hallucination.name"></h3>
+          <p data-i18n="games.hallucination.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">✍️</span><span class="game-tag">Requiere API</span></div>
-          <h3>Completa el Prompt</h3>
-          <p>El grupo predice respuestas del modelo y aprende a escribir instrucciones mas precisas.</p>
+          <div class="game-top"><span class="game-icon">✍️</span><span class="game-tag" data-i18n="games.api"></span></div>
+          <h3 data-i18n="games.completeprompt.name"></h3>
+          <p data-i18n="games.completeprompt.desc"></p>
         </article>
         <article class="game-card">
-          <div class="game-top"><span class="game-icon">🗣️</span><span class="game-tag">Requiere API</span></div>
-          <h3>Debate con la IA</h3>
-          <p>Cada jugador argumenta una posicion y compara su respuesta con el contraargumento de la IA.</p>
+          <div class="game-top"><span class="game-icon">🗣️</span><span class="game-tag" data-i18n="games.api"></span></div>
+          <h3 data-i18n="games.debate.name"></h3>
+          <p data-i18n="games.debate.desc"></p>
         </article>
       </div>
     </div>
@@ -388,25 +389,25 @@
 
   <section class="section alt fade-section" id="funciona">
     <div class="section-inner">
-      <div class="section-kicker">Como funciona</div>
-      <h2>Que ocurre dentro de cada juego</h2>
-      <p class="section-lead">Cada modulo usa rondas cortas, puntuacion inmediata y un marcador compartido para mantener el ritmo de la clase.</p>
+      <div class="section-kicker" data-i18n="how.kicker"></div>
+      <h2 data-i18n="how.title"></h2>
+      <p class="section-lead" data-i18n="how.lead"></p>
       <div class="details-grid">
         <article class="detail-card">
-          <h3>Preguntas rapidas</h3>
-          <p>Trivia, Etica y Real o IA muestran opciones. El sistema evalua la respuesta, suma puntos por acierto y premia la rapidez.</p>
+          <h3 data-i18n="how.quick.title"></h3>
+          <p data-i18n="how.quick.desc"></p>
         </article>
         <article class="detail-card">
-          <h3>Comparacion de textos</h3>
-          <p>Desafio Turing presenta dos textos. El estudiante identifica el texto generado por IA y luego ve la explicacion.</p>
+          <h3 data-i18n="how.texts.title"></h3>
+          <p data-i18n="how.texts.desc"></p>
         </article>
         <article class="detail-card">
-          <h3>Prompts y prediccion</h3>
-          <p>Completa el Prompt pide anticipar como responderia un modelo. Requiere API para generar la respuesta real.</p>
+          <h3 data-i18n="how.prompts.title"></h3>
+          <p data-i18n="how.prompts.desc"></p>
         </article>
         <article class="detail-card">
-          <h3>Argumentacion guiada</h3>
-          <p>Debate con la IA convierte un tema en un ejercicio de razonamiento donde se contrasta la posicion del estudiante con la del modelo.</p>
+          <h3 data-i18n="how.debate.title"></h3>
+          <p data-i18n="how.debate.desc"></p>
         </article>
       </div>
     </div>
@@ -415,14 +416,14 @@
   <section class="section fade-section" id="salas">
     <div class="section-inner rooms-layout">
       <div>
-        <div class="section-kicker">Salas en vivo</div>
-        <h2>El docente controla la sesion y los estudiantes entran con un codigo</h2>
-        <p class="section-lead">No hace falta crear cuentas. La sala vive en memoria mientras el servidor esta activo.</p>
+        <div class="section-kicker" data-i18n="rooms.kicker"></div>
+        <h2 data-i18n="rooms.title"></h2>
+        <p class="section-lead" data-i18n="rooms.lead"></p>
         <div class="steps">
-          <div class="step"><div><strong>Crear sala</strong><span>El docente abre el panel, escribe su nombre y opcionalmente agrega una API key para los juegos con IA.</span></div></div>
-          <div class="step"><div><strong>Compartir codigo</strong><span>La plataforma genera un codigo corto. Los estudiantes entran en /jugar y lo escriben junto a su nombre.</span></div></div>
-          <div class="step"><div><strong>Elegir modulo</strong><span>El docente selecciona el juego, define la cantidad de rondas e inicia la actividad.</span></div></div>
-          <div class="step"><div><strong>Ver resultados</strong><span>El marcador se actualiza por ronda y al final se muestran podio y resultados exportables.</span></div></div>
+          <div class="step"><div><strong data-i18n="rooms.step1.title"></strong><span data-i18n="rooms.step1.desc"></span></div></div>
+          <div class="step"><div><strong data-i18n="rooms.step2.title"></strong><span data-i18n="rooms.step2.desc"></span></div></div>
+          <div class="step"><div><strong data-i18n="rooms.step3.title"></strong><span data-i18n="rooms.step3.desc"></span></div></div>
+          <div class="step"><div><strong data-i18n="rooms.step4.title"></strong><span data-i18n="rooms.step4.desc"></span></div></div>
         </div>
       </div>
       <img src="/assets/mascota.png" alt="Mascota acompanando las salas" class="rooms-mascot">
@@ -430,18 +431,23 @@
   </section>
 
   <footer class="footer">
-    <p><strong>IA Para Todos</strong> · Universidad Tecnológica de La Habana · CUJAE · La Habana, Cuba</p>
+    <p data-i18n="footer.text" data-i18n-html="true"></p>
   </footer>
 
   <div class="quick-actions" id="quick-actions">
     <div class="quick-panel" aria-label="Acciones rapidas">
-      <a href="/docente" class="btn btn-primary">Crear sala</a>
-      <a href="/jugar" class="btn btn-ghost">Unirse a sala</a>
+      <a href="/docente" class="btn btn-primary" data-i18n="quick.create"></a>
+      <a href="/jugar" class="btn btn-ghost" data-i18n="quick.join"></a>
     </div>
     <button class="quick-main" id="quick-main" aria-label="Abrir acciones rápidas" aria-expanded="false">+</button>
   </div>
 
+  <script src="/js/i18n.js"></script>
   <script>
+    // Init i18n
+    I18N.injectSwitcher(document.getElementById('lang-switcher-container'));
+    I18N.applyToDOM();
+
     const navToggle = document.getElementById('nav-toggle');
     const homeNav = document.querySelector('.home-nav');
     if (navToggle && homeNav) {
